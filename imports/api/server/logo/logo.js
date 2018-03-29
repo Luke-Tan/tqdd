@@ -1,7 +1,6 @@
 //npm dependancies
 import vision from '@google-cloud/vision';
 import imagescraper from 'image-scraper';
-import $ from 'jQuery';
 import google from 'google';
 import striptags from 'striptags';
 
