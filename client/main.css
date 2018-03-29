@@ -1,0 +1,105 @@
+/* CSS declarations go here */
+body {
+	background-image: url("Rainbow_Feather.jpg");
+
+    /* Set a specific height */
+
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity:0.9;
+}
+canvas{
+	height:500px !important;
+	width:100% !important;
+}
+
+.websitelogo {
+	position:absolute;
+	left:15px;
+	top:10px;
+	width: auto;
+	height: 75px;
+}
+
+.search {
+	margin:5px 0 5px 0px !important;
+	border:none !important;
+	box-shadow: none !important;
+	background-color: transparent !important;
+}
+
+.select-dropdown {
+	margin:5px 0 5px 0 !important;
+	border:none !important;
+	box-shadow: none !important;
+	text-align:center;
+}
+
+.card-search {
+	margin:0 !important;
+}
+
+.card-search .select-wrapper span.caret {
+	line-height:normal !important;
+}
+
+.no-shadow{
+	box-shadow: none !important;
+}
+
+.button-horizontal-align{
+	display: flex;
+  	justify-content: center;
+}
+
+/*.page {
+	height:100vh;
+	width:100vw;
+}
+*/
+.search-bar {
+/*	padding-top:5rem;
+	padding-bottom:20rem;*/
+}
+
+.search-col {
+	padding:0rem !important;
+}
+
+.invisible {
+	display:none;
+}
+
+.section.banner {
+	padding-top:13rem;
+}
+
+.tabs .indicator {
+    background-color: #2196F3;
+}
+
+.collection-row {
+	margin-bottom:20px !important;
+	margin-top: 20px !important;
+}
+
+.logo-container img {
+    display:block;
+    margin:auto;
+}
+
+/* Change the white to any color ;) */
+@-webkit-keyframes autofill {
+    to {
+        color: #666;
+        background: transparent;
+    }
+}
+
+input:-webkit-autofill {
+    -webkit-animation-name: autofill;
+    -webkit-animation-fill-mode: both;
+}

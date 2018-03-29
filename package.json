@@ -1,0 +1,35 @@
+{
+  "name": "scraper",
+  "private": true,
+  "scripts": {
+    "start": "meteor run"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.40",
+    "@google-cloud/vision": "^0.15.2",
+    "babel-runtime": "^6.26.0",
+    "canvas": "^1.6.9",
+    "change-case": "^3.0.2",
+    "fibers": "^2.0.0",
+    "get-image-urls": "^1.0.5",
+    "google": "^2.1.0",
+    "google-gax": "^0.14.5",
+    "gramophone": "0.0.3",
+    "grpc": "^1.9.0",
+    "image-scraper": "^0.2.1",
+    "jquery": "^3.3.1",
+    "merge-images": "^1.1.0",
+    "meteor-node-stubs": "^0.3.2",
+    "phantomjs": "^2.1.7",
+    "rename-keys": "^2.0.1",
+    "simplecrawler": "^1.1.6",
+    "stopword": "^0.1.10",
+    "striptags": "^3.1.1",
+    "term-frequency": "0.0.15",
+    "term-vector": "^0.1.2",
+    "whois": "^2.5.10",
+    "whois-api": "^1.0.2",
+    "whois-ux": "0.0.2",
+    "x-ray": "^2.3.2"
+  }
+}

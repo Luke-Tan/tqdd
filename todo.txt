@@ -1,0 +1,32 @@
+Error handling
+	Handle empty string submit
+	Handle string submit that fails to retrieve data (incorrect format, typo)
+	Handle multiple submits (disable?)
+	Cancel button
+
+
+whois: domain only (no http://, no subdomain, no www)
+logos: full domain (subdomain, http, no www)
+text: full domain (no subdomain, http, www)
+
+SOME NEED WWW, SOME DONT, IT DEPENDS ON THE WEBSITE ITSELF
+
+
+	
+THINGS TO DO ATM (Currently breaking the app):		Notes
+1. Get ALL links from the initial webpage			NOT WORKING WITH THE CURRENT FRAMEWORK, NEED TO USE CHEERIO TO SCRAPE		Done!!
+2. Loop through these links and return data 		Promises may be tricky
+3. Logos seem to be the biggest problem now			Whois, wordcloud should be no problem and unaffected
+
+need to restructure the way logos are presented
+
+if 1 logo in pic => 
+if >1 logo in pic =>
+
+filter logos by confidence => <0.18 
+
+necessary to crop images in the long run
+
+MAKE THE APP ROBUST!!! => Try for a LOT more websites
+
+WWW issue is still pressing, must look for a solution
