@@ -9,14 +9,13 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    opacity:0.9;
 }
 canvas{
 	height:500px !important;
 	width:100% !important;
 }
 
-.websitelogo {
+.website-logo {
 	position:absolute;
 	left:15px;
 	top:10px;
@@ -89,6 +88,10 @@ canvas{
 .logo-container img {
     display:block;
     margin:auto;
+}
+
+.content-container {
+	padding-top:25rem;
 }
 
 /* Change the white to any color ;) */

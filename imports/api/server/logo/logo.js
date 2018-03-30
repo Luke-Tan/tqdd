@@ -63,15 +63,15 @@ Meteor.methods({
 			    	if(logos.length > 1){
 			    		let logoSet = [];
 			    		logos.forEach(logo =>{
+			    			if(logo.score>0.18){
 			    			let keyword = logo.description.replace(/ /g,'');
 			    			let logoInfo = Scrape.wikipedia(keyword, 'en');
 			    			let description = striptags(logoInfo.summary);
 			    			let name = logo.description;
 			    			if(description == ''){
-			    				description = "false";
+			    				description = "";
 			    			}
 			    			console.log(logo.description+logo.score);
-			    			if(logo.score>0.18){
 			    				logoSet.push({'name':name,'description':description});
 			    			}
 			    		});
@@ -80,6 +80,7 @@ Meteor.methods({
 			    		logosArray.push({'logoset':logoSet,'src':image, 'multilogo':true});
 			    	} else if(logos.length == 1) {
 			    		logos.forEach(logo => {
+			    			if(logo.score>0.18){
 				    		//console.log(logo);
 				    		let keyword = logo.description.replace(/ /g,'');
 				    		//console.log(keyword);
@@ -87,10 +88,9 @@ Meteor.methods({
 				    		let description = striptags(logoInfo.summary);
 				    		let name = logo.description;
 				    		if(description == ''){
-				    			description = "false";
+				    			description = "";
 				    		}
-				    		//console.log(description);
-				    		if(logo.score>0.18){
+				    		console.log(description);
 				    			logosArray.push({'name':name,'src':image, 'description':description, 'multilogo':false});
 				    		}
 				    	});

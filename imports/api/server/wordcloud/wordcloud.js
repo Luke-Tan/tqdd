@@ -17,7 +17,7 @@ Meteor.methods({
 		// const html = Scrape.website(url);
 		// console.log(html.references);
 		// const text = html.text;
-		const cloudwords = gramophone.extract(allText, { score:true, limit:80 });
+		const cloudwords = gramophone.extract(allText, { score:true, limit:60 });
 		const chartwords = gramophone.extract(allText, { score:true, limit:10 });
 		cloudwords.forEach((item,index)=>{
 			const obj = renameKeys(item, (key,val) => {

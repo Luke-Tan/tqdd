@@ -17,7 +17,9 @@
 </template>
 
 <template name="main">
-  <img class="websitelogo" src="tqlogo2.webp">
+  <a href="https://www.thunderquote.com">
+    <img class="website-logo" src="tqlogo2.webp">
+  </a>
 <!--   <div class="page"> -->
   <div class="page">
     <div class="section banner">
@@ -39,15 +41,20 @@
                   </select>
       <!--             <label for="protocol">Protocol</label> -->
                 </div>
-                <div class="col l1 m1 s2 search-col">
-                  <input disabled value="www" id="disabled" type="text" class="form-control center search">
+
+<!--                 <div class="col l1 m1 s2 search-col">
+                  <input disabled value="www" type="text" class="form-control center search">
                 </div>
                 <div class="col l9 m8 s6 search-col">
-                  <input class="form-control search" id="url" name="text" placeholder="Enter URL"/>
+                  <input class="form-control search" id="url" name="text" placeholder="thunderquote.com"/>           
+                </div> -->
+
+                <div class="col l9 m9 s8 search-col">
+                  <input class="form-control search" id="url" name="text" placeholder="home.hyrontech.com"/>
                   <!-- <label for="url">URL of company</label>  -->            
                 </div>
                 <div class="col l1 m1 s2 valign-wrapper button-horizontal-align search-col">
-                    <button class="btn btn-floating waves-effect waves-light transparent no-shadow pulse" type="submit">
+                    <button class="btn btn-floating transparent no-shadow" id="search" type="submit">
                       <i class="material-icons blue-text">search</i>
                     </button>
                 </div>
@@ -78,7 +85,9 @@
 </template>
 
  <template name="content">
-  <div class="container center">  
+
+  <!-- Wordcloud section -->
+  <div class="container center content-container">  
     <div class="card wordcloud-card"> 
       <div class="row center">
         <div id="wordcloud" style="width:100%; height:500px;"></div>
@@ -94,6 +103,66 @@
       </div>
     </div>
   </div>
+  <!-- /Wordcloud section -->
+
+  <!-- Logos/Client portfolio section -->
+  <div class="section">
+    <div class="container">
+      <div class="card">
+        <ul class="collection with-header">
+          <li class="collection-header blue-text center"><h4>Client portfolio</h4></li>
+            {{#if foundLogos}}
+              {{#each logo in logos}}
+                <li class="collection-item">
+                  <div class="row collection-row valign-wrapper">
+                    {{#if logo.multilogo}}
+                      <div class="col s12">
+                        <div class="row">
+                          <div class="col s12">
+                            <img class="responsive-img" src="{{logo.src}}">
+                          </div>
+                        </div>
+                        {{#each logoset in logo.logoset}}
+                          <div class="row valign-wrapper">
+                            <div class="col s4 center">
+                                <h4>{{logoset.name}}</h4>
+                            </div>
+                            <div class="col s8">
+                                <p>{{logoset.description}}</p>
+                            </div>
+                          </div>
+                        {{/each}}
+                      </div>
+                    {{else}}
+                      <div class="col s3 logo-container">
+                        <img class="responsive-img" src="{{logo.src}}">
+                      </div>
+                      <div class="col s9">
+                        <h4>{{logo.name}}</h4>
+                        <p>{{logo.description}}</p>
+                      </div>
+                    {{/if}}
+                  </div>
+                </li>             
+              {{/each}}
+            {{else}}
+              <li class="collection-item">
+                <div class="row collection-row valign wrapper">
+                  <div class="col s12 center">
+                    <h5 class="red-text">
+                      No logos found
+                    </h5>
+                  </div>
+                </div>
+              </li>
+            {{/if}}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- /Logos/Client portfolio section -->
+
+  <!-- Who is lookup section -->
   <div class="section">
     <div class="container">
       <div class="card">
@@ -102,11 +171,15 @@
           {{#each whoIs in whoIsData}}
             <li class="collection-item">
               <div class="row collection-row">
-                <div class="col s6">
-                  {{whoIs.name}}
+                <div class="col s3">
+                  <h6>
+                    {{whoIs.name}}
+                  </h6>
                 </div>
-                <div class="col s6">
-                  {{whoIs.data}}
+                <div class="col s8">
+                  <h6>
+                    {{whoIs.data}}
+                  </h6>
                 </div>
               </div>
             </li>
@@ -115,85 +188,7 @@
       </div>
     </div>
   </div>
-  <div class="section">
-    <div class="container">
-      <div class="card">
-        <ul class="collection with-header">
-          <li class="collection-header blue-text center"><h4>Client portfolio</h4></li>
-            {{#each logo in logos}}
-              <li class="collection-item">
-                <div class="row collection-row valign-wrapper">
-                  {{#if logo.multilogo}}
-                    <div class="col s12">
-                      <div class="row">
-                        <div class="col s12">
-                          <img class="responsive-img" src="{{logo.src}}">
-                        </div>
-                      </div>
-                      {{#each logoset in logo.logoset}}
-                        <div class="row valign-wrapper">
-                          <div class="col s4 center">
-                              <h4>{{logoset.name}}</h4>
-                          </div>
-                          <div class="col s8">
-                              <p>{{logoset.description}}</p>
-                          </div>
-                        </div>
-                      {{/each}}
-                    </div>
-                  {{else}}
-                    <div class="col s3 logo-container">
-                      <img class="responsive-img" src="{{logo.src}}">
-                    </div>
-                    <div class="col s9">
-                      <h4>{{logo.name}}</h4>
-                      <p>{{loglogooset.description}}</p>
-                    </div>
-                  {{/if}}
-                </div>
-              </li>             
-            {{/each}}
-<!-- 
-          {{#if logosInOneImage}}
-            <div class="row collection-row valign-wrapper">
-              <div class="col s12">
-                <li class="collection-item">
-                  <img class="responsive-img" src={{singleImageLogoSrc}}>
-                </li>
-              </div>
-            </div>
-            {{#each logo in logos}}
-              {{#if logo.description}}
-                <li class="collection-item">
-                  <div class="row collection-row valign-wrapper">
-                    <div class="col s12">
-                      <h4>{{logo.name}}</h4>
-                      <p>{{logo.description}}</p>
-                    </div>
-                  </div>
-                </li>
-              {{/if}}
-            {{/each}}
-          {{else}}
-            {{#each logo in logos}}
-              <li class="collection-item">
-                <div class="row collection-row valign-wrapper">
-                  <div class="col s3 logo-container">
-                    <img class="responsive-img" src="{{logo.src}}">
-                  </div>
-                    <div class="col s9">
-                      <h4>{{logo.name}}</h4>
-                      <p>{{logo.description}}</p>
-                    </div>
-                </div>
-              </li>
-            {{/each}}
-          {{/if}} -->
-        </ul>
-      </div>
-    </div>
-  </div>
-
+  <!-- /Who is lookup section -->
 </template>
 
 

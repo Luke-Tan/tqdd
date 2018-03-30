@@ -27,3 +27,7 @@ materialize:materialize
 kadira:blaze-layout
 percolate:momentum
 reactive-dict
+meteor@=1.8.2
+ddp-client
+babel-compiler@=7.0.3
+modules@=0.11.4
