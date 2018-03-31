@@ -9,7 +9,9 @@ import striptags from 'striptags';
 // var logosArray;
 
 //Instantiate google vision client
-const client = new vision.ImageAnnotatorClient();
+const client = new vision.ImageAnnotatorClient({
+  keyFilename: '/scraper-keys.json'
+});
 
 //Instantiate image scraper
 
