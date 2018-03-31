@@ -39,6 +39,38 @@ Meteor.methods({
 			//console.log(linksArray);
 		});
 		return future.wait();
+	},
+	getGoogleLinks(query){
+		var future = new Future();
+		const apiKey = 'AIzaSyC5Uhd7oSMRAoyXRH6JR5TF1ZYYnAxT6Ws';
+		const cx = '001667370438783560875:zefmarr8i8w';
+		const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}`;
+		//console.log(url);
+		// https.get(url, res => {
+		//   res.setEncoding("utf8");
+		//   let body = "";
+		//   res.on("data", data => {
+		//     body += data;
+		//   });
+		//   res.on("end", () => {
+		//     body = JSON.parse(body);
+		//     console.log(
+		//       `City: ${body.results[0].formatted_address} -`,
+		//       `Latitude: ${body.results[0].geometry.location.lat} -`,
+		//       `Longitude: ${body.results[0].geometry.location.lng}`
+		//     );
+		//   });
+		// });
+		request(url,function(err,resp,body){
+			let bodyJSON = JSON.parse(body);
+			let results = bodyJSON.items;
+			let linksArray = [];
+			results.forEach((item)=>{
+				linksArray.push(item.link);
+			});
+			console.log(linksArray);
+		});
+		// return future.wait();
 	}
 });
 

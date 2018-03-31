@@ -30,3 +30,21 @@ necessary to crop images in the long run
 MAKE THE APP ROBUST!!! => Try for a LOT more websites
 
 WWW issue is still pressing, must look for a solution
+
+
+for url in urls:
+	imgs = []
+	meteor.call(scrape, (result)=>{
+		imgs+= result
+	})
+
+=> very very slow, need to go through ALL webpages and for all iamges, very server and API intensive, not cost efficient
+=> maybe try to only search:
+	Main page
+	/portfolio
+	/clients
+	/client
+	?
+
+	cx = 001667370438783560875:zefmarr8i8w
+	api = AIzaSyD9IXI3bwinycXG458dz4_1fldx1EmZdnM
