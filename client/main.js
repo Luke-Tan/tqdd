@@ -23,7 +23,8 @@ Template.main.onRendered(function(){
 Template.main.events({
   'submit .scrape-url'(event, instance){
     event.preventDefault();
-
+    //Lock scrolling to hide created elements until render is complete
+    document.body.style.overflow = "hidden";
     window.scroll({
       top: 0, 
       left: 0, 
@@ -57,8 +58,6 @@ Template.main.events({
             document.body.style.overflow = "scroll"; 
         } else {
             BlazeLayout.render('layout2', { top: "main",bot:"content"});
-            //Lock scrolling to hide created elements until render is complete
-            document.body.style.overflow = "hidden";
             //Disable input and show preloader while rendering
             $("#url").prop('disabled', true);
             $("#search").addClass('disabled');
