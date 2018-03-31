@@ -10,7 +10,11 @@ import striptags from 'striptags';
 
 //Instantiate google vision client
 const client = new vision.ImageAnnotatorClient({
-  keyFilename: '/scraper-keys.json'
+	projectId: Meteor.settings.PROJECT_ID,
+	credentials: {
+		private_key: Meteor.settings.private_key.replace(/\\n/g, '\n'),
+		client_email: Meteor.settings.client_email
+	}
 });
 
 //Instantiate image scraper
@@ -29,7 +33,7 @@ imagescraper.prototype.scrapeAsync = function(ms) {
         // ref.on('error', reject); // unfortunately image-scraper doesn't emit an 'error' event.
         if(ms !== undefined) { // maybe timeout as substitute for error handler?
             setTimeout(function() {
-                reject('image-scraper timed out after ${ms} ms');
+                reject(`image-scraper timed out after ${ms} ms`);
             }, ms);
         }
         ref.scrape();
