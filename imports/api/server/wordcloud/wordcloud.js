@@ -49,11 +49,13 @@ function analyze(params) {
 
 				//Include top 10 terms inside the wordchart
 				for(i=0;i<11;i++){
-					let item = keywords[i];
-					let text = item.text;
-					let weight = item.relevance;
-					let freq = Math.ceil((weight**3)*65);
-					chartList.push({'text':text,'weight':freq});
+					if(keywords[i] != undefined){
+						let item = keywords[i];
+						let text = item.text;
+						let weight = item.relevance;
+						let freq = Math.ceil((weight**3)*65);
+						chartList.push({'text':text,'weight':freq});
+					}
 				}
 				resolve([cloudList,chartList]);
 			}

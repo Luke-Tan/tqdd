@@ -31,15 +31,20 @@ var imageScraper = new imagescraper();
 //Functions for loading and preparing of images in base64 buffer to send to google cloud API
 function loadAsync(image){
     return new Promise(function(resolve,reject){
-	    request({url: image, encoding: null}, function (err, res, body) {
-	        if (!err && res.statusCode == 200) {
-	            let image = body.toString('base64');
-	            let buf = Buffer.from(image, 'base64');
-	            resolve(buf)
-	        } else {
-	            return reject(err);
-	        }
-	    });     
+    	if(!image.includes('base64')){
+		    request({url: image, encoding: null}, function (err, res, body) {
+		        if (!err && res.statusCode == 200) {
+		            let image = body.toString('base64');
+		            let buf = Buffer.from(image, 'base64');
+		            resolve(buf)
+		        } else {
+		            return reject(err);
+		        }
+		    });
+		} else {
+			let buf = Buffer.from(image, 'base64');
+			resolve(buf);
+		}     
     });
 }
 
@@ -64,13 +69,13 @@ function loadImages(address){
 			$ = cheerio.load(body);
 			var imgs = $('img');
 			$(imgs).each(function(i,img){
-				console.log(img);
+				//console.log(img);
 				let src = img.attribs.src;
 				if(src == undefined){
 					src = img.attribs['data-cfsrc'];
 				}
 				let imgAddress = url.resolve(address, src);
-				console.log(imgAddress);
+				//console.log(imgAddress);
 				imgsArray.push(imgAddress);
 			})
 			resolve(imgsArray);
@@ -123,6 +128,7 @@ Meteor.methods({
 
 		//const images = await imageScraper.scrapeAsync(50000);
 		const images = await getImages(url);
+		console.log(images);
 		let uniqueImages = Array.from(new Set(images));
 		let uniqueImagesBase64 = await getImagesAsBase64(uniqueImages);
 

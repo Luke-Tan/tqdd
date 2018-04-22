@@ -4,13 +4,18 @@ import { Template } from 'meteor/templating';
 import '/imports/ui/client/wordcloud/wordcloud.html';
 import '/imports/ui/client/whois/whois.html';
 import '/imports/ui/client/logos/logos.html';
+import '/imports/ui/client/testimonials/testimonials.html';
+
 import '/imports/ui/client/wordcloud/helpers.js';
 import '/imports/ui/client/whois/helpers.js';
 import '/imports/ui/client/logos/helpers.js';
+import '/imports/ui/client/testimonials/helpers.js';
+
 import './main.html';
 import { getWhoIs } from '/imports/api/client/whois/whois.js';
 import { getWordCloud } from '/imports/api/client/wordcloud/wordcloud.js';
 import { getLogos } from '/imports/api/client/logo/logo.js';
+import { getTestimonials } from '/imports/api/client/testimonials/testimonials.js';
 import { extractRootDomain , extractHostname } from '/imports/api/client/all/functions.js';
 
 //npm modules
@@ -48,7 +53,7 @@ Template.main.events({
     });
 
     const enteredUrl = (event.target.text.value).toLowerCase();
-    const protocol = 'https://';
+    const protocol = 'http://';
     let fullUrl;
 
     const host = extractHostname(enteredUrl);
@@ -76,6 +81,9 @@ Template.main.events({
     Session.clear();
 
     Meteor.call('checkForValidUrl',fullUrl,(err,result) => {
+        if(err){
+            console.error(err);
+        }
         console.log(result);
         $("#url").prop('disabled', false);
         $("#search").removeClass('disabled');
@@ -91,6 +99,7 @@ Template.main.events({
             $('#wordchart-preloader').removeClass('invisible');
             $("#whois-preloader").removeClass('invisible');
             $("#logos-preloader").removeClass('invisible');
+            $("#testimonials-preloader").removeClass('invisible');
 
             //Temporarily disable wordcloud tabs
             $("#wordcloud-tab").addClass('disabled');
@@ -130,8 +139,12 @@ Template.main.events({
                 $('#logos-preloader').addClass('invisible');    
             });
 
+            getTestimonials(fullUrl, ()=>{
+                //Make all preloaders invisible
+                $("#testimonials-preloader").addClass('invisible');
+                $('.collapsible').collapsible();
+            });
         }
     });
-
   }
 });

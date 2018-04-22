@@ -1,0 +1,37 @@
+<template name="testimonials_template">
+  <div class="section">
+    <div class="container">
+      <div class="card">
+<!--         <ul class="collection with-header">
+          <li class="collection-header blue-text center">
+            <h4>Testimonials</h4>
+          </li>
+        </ul> -->
+        <ul class="collapsible collection with-header">
+          <li class="collection-header blue-text center">
+            <h4>Testimonials</h4>
+          </li>
+          <div id="testimonials-preloader" class="center preloader-margin">
+            <div class="preloader-wrapper big active huge">
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {{#each testimonial in testimonials}}
+          <li>
+            <div class="collapsible-header"><i class="material-icons">message</i>{{testimonial.author}}</div>
+            <div class="collapsible-body"><span>{{testimonial.text}}</span></div>
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>

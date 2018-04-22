@@ -6,7 +6,7 @@ import url from 'url';
 Meteor.methods({
 	checkForValidUrl(url){
 		let future = new Future();
-		request(url,function(err,resp,body){
+		request({url:url, timeout:10000},function(err,resp,body){
 			if(!err && resp.statusCode ==200){
 				future['return'](true);
 			} else {

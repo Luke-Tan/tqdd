@@ -63,3 +63,9 @@ export function extractRootDomain(url) {
     }
     return domain;
 }
+
+export function getDomain(url){
+    var matches = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+    var domain = matches && matches[1];
+    return domain;
+}
