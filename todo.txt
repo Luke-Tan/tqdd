@@ -1,50 +1,49 @@
-Error handling
-	Handle empty string submit
-	Handle string submit that fails to retrieve data (incorrect format, typo)
-	Handle multiple submits (disable?)
-	Cancel button
+TODOS:																									Status
+
+Logo:
+	Test blurb with Google knowledge graph																Done 	(Not sure if its better than wikipedia)
+
+Word Cloud:
+	Increase phrase weightage																			Done
+	Removal of 2 letters/chars																			Done
+	Sentiment analysis and increased weightage 															Done
+
+USE WATSON NLU FOR WORDCLOUD TEMPORARILY??																Done
+
+WhoIs:
+	Compress length by making it a collapsible, or with a swipe carousel								Done
+	Display registrant data first in this carousel														Done
+
+Testimonials:
+	Focus on rolling it out for the initial case => Testimonial followed by author
+
+General:
+	Remove the http/https dropdown																		Done
+		=>Work on the assumption that users generally copy and paste the whole url in
+			=> That being said I should take into account whether or not the user has entered 
+			   the url himself, so I should account for him adding the appropriate www, http/https		Done
+	Loading animations switch from bar to circular spin
+	Immediate loading animation on enter => Solve it by sending a small ping request
+	Disable enter for ~10s while searching																Done
+	Change title from 'scraper' to 'TQ Due Dilligence Scanner'											Done
+	Add TQ Favicon																						Done
+	Change 'due dilligence webtool' to 'TQ Vendor Due Dilligence Scanner'								Done			
+	Change background picture to the one on the TQ website												DONE
+	Fil in gap below search bar with 'Results for ${website} below'										Done
+
+Refactoring:
+	Abstract everything in main.js into component js files
+	Possibly move over to react?
 
 
-whois: domain only (no http://, no subdomain, no www)
-logos: full domain (subdomain, http, no www)
-text: full domain (no subdomain, http, www)
-
-SOME NEED WWW, SOME DONT, IT DEPENDS ON THE WEBSITE ITSELF
 
 
-	
-THINGS TO DO ATM (Currently breaking the app):		Notes
-1. Get ALL links from the initial webpage			NOT WORKING WITH THE CURRENT FRAMEWORK, NEED TO USE CHEERIO TO SCRAPE		Done!!
-2. Loop through these links and return data 		Promises may be tricky
-3. Logos seem to be the biggest problem now			Whois, wordcloud should be no problem and unaffected
 
-need to restructure the way logos are presented
-
-if 1 logo in pic => 
-if >1 logo in pic =>
-
-filter logos by confidence => <0.18 
-
-necessary to crop images in the long run
-
-MAKE THE APP ROBUST!!! => Try for a LOT more websites
-
-WWW issue is still pressing, must look for a solution
-
-
-for url in urls:
-	imgs = []
-	meteor.call(scrape, (result)=>{
-		imgs+= result
-	})
-
-=> very very slow, need to go through ALL webpages and for all iamges, very server and API intensive, not cost efficient
-=> maybe try to only search:
-	Main page
-	/portfolio
-	/clients
-	/client
-	?
-
-	cx = 001667370438783560875:zefmarr8i8w
-	api = AIzaSyD9IXI3bwinycXG458dz4_1fldx1EmZdnM
+Registrant
+8x
+Admin
+8x
+Tech
+7x
+Other
+8x

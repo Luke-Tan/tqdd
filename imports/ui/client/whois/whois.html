@@ -1,0 +1,107 @@
+<template name="whois_template">
+  <div class="section">
+    <div class="container">
+      <div class="card">
+        <ul class="collection with-header">
+          <li class="collection-header blue-text center"><h4>Who Is Lookup</h4></li>
+            <div class="carousel large-carousel carousel-slider center">
+
+              <div id="whois-preloader" class="carousel-fixed-item center">
+                <div class="preloader-wrapper big active gigantic">
+                  <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                      <div class="circle"></div>
+                    </div><div class="gap-patch">
+                      <div class="circle"></div>
+                    </div><div class="circle-clipper right">
+                      <div class="circle"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="carousel-item white black-text valign-wrapper" href="#one!">
+                <li class="collection-header center">
+                  <h5>Registrant Info</h5>
+                </li>
+                {{#each registrantEntry in registrantData}}
+                  <li class="collection-item">
+                    <div class="row collection-row">
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{registrantEntry.name}}
+                        </h6>
+                      </div>
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{registrantEntry.data}}
+                        </h6>
+                      </div>
+                    </div>
+                  </li>
+                {{/each}}
+              </div>
+
+              <div class="carousel-item white black-text" href="#two!">
+                <li class="collection-header center"><h5>Admin Info</h5></li>
+                {{#each adminEntry in adminData}}
+                  <li class="collection-item">
+                    <div class="row collection-row">
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{adminEntry.name}}
+                        </h6>
+                      </div>
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{adminEntry.data}}
+                        </h6>
+                      </div>
+                    </div>
+                  </li>
+                {{/each}}
+              </div>
+              <div class="carousel-item white black-text" href="#three!">
+                <li class="collection-header center"><h5>Tech Info</h5></li>
+                {{#each techEntry in techData}}
+                  <li class="collection-item">
+                    <div class="row collection-row">
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{techEntry.name}}
+                        </h6>
+                      </div>
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{techEntry.data}}
+                        </h6>
+                      </div>
+                    </div>
+                  </li>
+                {{/each}}
+              </div>
+              <div class="carousel-item white black-text" href="#four!">
+                <li class="collection-header center"><h5>Other Info</h5></li>
+                {{#each otherEntry in otherData}}
+                  <li class="collection-item">
+                    <div class="row collection-row">
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{otherEntry.name}}
+                        </h6>
+                      </div>
+                      <div class="col s3 push-s3">
+                        <h6 class="center">
+                          {{otherEntry.data}}
+                        </h6>
+                      </div>
+                    </div>
+                  </li>
+                {{/each}}
+              </div>
+            </div>
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>

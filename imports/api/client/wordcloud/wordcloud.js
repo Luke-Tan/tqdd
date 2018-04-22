@@ -1,22 +1,15 @@
 import '/imports/ui/client/wordcloud/jqcloud.css';
 import '/imports/ui/client/content.html';
 
-// function randomColor() {
-//     var o = Math.round, r = Math.random, s = 255;
-//     return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s);
-// }
-
-
-
 export function getWordCloud(urls, render){
 
-    //Deprecated Randomcolor function
-
-    // function randomColor() {
-    //     let o = Math.round, r = Math.random, s = 255;
-    //     //return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s); // Random Color
-    //     return 'rgba(0,0,' + o(r()*s); // Random Blue color
-    // }
+    $('#wordcloud').jQCloud('destroy');
+    $("#chart-canvas").remove();
+    var newcanv = document.createElement('canvas');
+    newcanv.id = 'chart-canvas';
+    $( "#chart" ).append(newcanv);
+    const canvas = document.getElementById('chart-canvas');
+    const ctx = canvas.getContext('2d');
     
     Meteor.call('scrapeText', urls, function(err, result) {
 
@@ -39,19 +32,13 @@ export function getWordCloud(urls, render){
         });
 
         //Destroy existing canvas and create new one to use as chart
-        $("#chart-canvas").remove();
-        var newcanv = document.createElement('canvas');
-        newcanv.id = 'chart-canvas';
-        $( "#chart" ).append(newcanv);
-        const canvas = document.getElementById('chart-canvas');
-        const ctx = canvas.getContext('2d');
 
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: '# of Words',
+                    label: 'Relative Weightage',
                     data: data,
                     backgroundColor: backgroundColors,
                     borderColor: borderColors,
@@ -78,10 +65,10 @@ export function getWordCloud(urls, render){
         });
 
         //Create wordcloud
-        $('#wordcloud').jQCloud('destroy');
         $('#wordcloud').jQCloud(cloudWords, {
             autoResize:true,
         });
+        
         if(render != undefined){
             render();
         }   

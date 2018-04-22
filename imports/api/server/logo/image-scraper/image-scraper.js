@@ -104,14 +104,15 @@ Scraper.prototype.scrape = function(callback){
 	if(parsedUrl.protocol == "https:") {
 		protocol = https;
 	}
-
+	console.log(this.address);
 	var request = protocol.request(this.address, function(response){
 
 		if(response.statusCode != 200){
 			console.error("Image scraper(1): web page couldn't be found. (statusCode:" + response.statusCode + ")");
+			//console.log(response);
 			ref.emit("end");
 			request.end();
-			return process.exit(1);
+			//return process.exit(1);
 		}
 		else{
 
@@ -128,7 +129,7 @@ Scraper.prototype.scrape = function(callback){
 				current.replace(/<img[\S\s]*?>/ig, function(m){
 
 					var image = new Image(cheerio.load(m)("img")[0], ref.address);
-
+					//console.log(image);
 					ref.emit("image", image);
 				});
 
@@ -143,9 +144,29 @@ Scraper.prototype.scrape = function(callback){
 	request.end();
 
 	request.on("error", function(e){
-
 		console.error("Image scraper(2): error while loading web page: " + e + ".");
 	});
 };
+
+Scraper.prototype.scrapeAsync = function(ms) {
+    let ref = this; // same coding style as in existing methods.
+    let images = [];
+    return new Promise(function(resolve, reject) {
+        ref.on('image', (image) => { 
+        	if(images.indexOf(image.address == -1)){
+        		//images.push({address:image.address, width:image.attributes.width, height:image.attributes.height});
+        		images.push(image.address);
+        	}
+        });
+        ref.on('end', () => { resolve(images) });
+        // ref.on('error', reject); // unfortunately image-scraper doesn't emit an 'error' event.
+        if(ms !== undefined) { // maybe timeout as substitute for error handler?
+            setTimeout(function() {
+                reject(`image-scraper timed out after ${ms} ms`);
+            }, ms);
+        }
+        ref.scrape();
+    });
+}
 
 module.exports = Scraper;

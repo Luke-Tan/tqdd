@@ -1,0 +1,44 @@
+<template name="wordcloud_template">
+  <div class="container center content-container">  
+    <div class="card wordcloud-card"> 
+      <div class="row center">
+
+        <div id="wordcloud" style="width:100%; height:550px;">
+          <div id="wordcloud-preloader" class="preloader-wrapper big active gigantic invisible">
+            <div class="spinner-layer spinner-blue-only">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div><div class="gap-patch">
+                <div class="circle"></div>
+              </div><div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="chart" style="width:100%; height:550px">
+          <div id="wordchart-preloader" class="preloader-wrapper big active gigantic invisible">
+            <div class="spinner-layer spinner-blue-only">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div><div class="gap-patch">
+                <div class="circle"></div>
+              </div><div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+          <canvas id="chart-canvas"></canvas>
+        </div>
+
+        <div class="col s12">
+          <ul class="tabs">
+            <li id="wordcloud-tab" class="tab col s6"><a class="active blue-text" href="#wordcloud">Wordcloud</a></li>
+            <li id="wordchart-tab" class="tab col s6"><a class="blue-text" href="#chart">Chart</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

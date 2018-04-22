@@ -1,0 +1,67 @@
+<template name="logos_template">
+  <div class="section">
+    <div class="container">
+      <div class="card">
+        <ul class="collection with-header center">
+          <li class="collection-header blue-text"><h4>Client portfolio</h4></li>
+            {{#if foundLogos}}
+              <div id="logos-preloader" class="preloader-wrapper huge active invisible">
+                <div class="spinner-layer spinner-blue-only">
+                  <div class="circle-clipper left">
+                    <div class="circle"></div>
+                  </div><div class="gap-patch">
+                    <div class="circle"></div>
+                  </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                  </div>
+                </div>
+              </div>
+              {{#each logo in logos}}
+                <li class="collection-item">
+                  <div class="row collection-row valign-wrapper">
+                    {{#if logo.multilogo}}
+                      <div class="col s12">
+                        <div class="row">
+                          <div class="col s12">
+                            <img class="responsive-img" src="{{logo.src}}">
+                          </div>
+                        </div>
+                        {{#each logoset in logo.logoset}}
+                          <div class="row valign-wrapper">
+                            <div class="col s4 center">
+                                <h4>{{logoset.name}}</h4>
+                            </div>
+                            <div class="col s8">
+                                <p>{{logoset.description}}</p>
+                            </div>
+                          </div>
+                        {{/each}}
+                      </div>
+                    {{else}}
+                      <div class="col s3 logo-container">
+                        <img class="responsive-img" src="{{logo.src}}">
+                      </div>
+                      <div class="col s9">
+                        <h4>{{logo.name}}</h4>
+                        <p>{{logo.description}}</p>
+                      </div>
+                    {{/if}}
+                  </div>
+                </li>             
+              {{/each}}
+            {{else}}
+              <li class="collection-item">
+                <div class="row collection-row valign wrapper">
+                  <div class="col s12 center">
+                    <h5 class="red-text">
+                      No logos found
+                    </h5>
+                  </div>
+                </div>
+              </li>
+            {{/if}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>

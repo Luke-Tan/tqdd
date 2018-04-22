@@ -1,6 +1,6 @@
 /* CSS declarations go here */
 body {
-	background-image: url("Rainbow_Feather.jpg");
+	background-image: url("singapore-skyline.jpg");
 
     /* Set a specific height */
 
@@ -11,7 +11,7 @@ body {
     background-size: cover;
 }
 canvas{
-	height:500px !important;
+	/*height:510px !important;*/
 	width:100% !important;
 }
 
@@ -81,8 +81,8 @@ canvas{
 }
 
 .collection-row {
-	margin-bottom:20px !important;
-	margin-top: 20px !important;
+	margin-bottom:15px !important;
+	margin-top: 15px !important;
 }
 
 .logo-container img {
@@ -91,8 +91,56 @@ canvas{
 }
 
 .content-container {
-	padding-top:25rem;
+	padding-top:2rem;
 }
+
+.preloader-wrapper.huge{
+	height:100px;
+	width:100px;
+}
+
+.preloader-wrapper.gigantic {
+	height:250px;
+	width:250px;
+	top:30%;
+}
+
+#whois-preloader {
+	bottom:30%;
+}
+
+#logos-preloader {
+	margin: 30px;
+}
+.section.more-pad {
+	padding-top: 3rem;
+	padding-bottom: 3rem;
+}
+
+.no-margin {
+	margin:0 !important;
+}
+
+.large-carousel {
+	height:780px !important;
+}
+
+.indicator-item {
+	background-color: #64b5f6 !important;
+}
+
+.indicator-item.active {
+	background-color: #1565c0 !important;
+}
+
+.card-panel.less-pad {
+	padding: 12px;
+}
+
+.invisible {
+	display:none !important;
+}
+
 
 /* Change the white to any color ;) */
 @-webkit-keyframes autofill {
