@@ -101,7 +101,7 @@ async function isAuthor(text,element){
 
 
 function isTestimonial(text){
-	if(wordCount(text) > 6 && bayes.classify(text)=='testimonial'){
+	if(wordCount(text) > 10 && bayes.classify(text)=='testimonial'){
 		return true;
 	} else {
 		return false;
