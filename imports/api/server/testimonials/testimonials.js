@@ -163,7 +163,7 @@ function classifyTestimonials(link){
 					    return this.type === 'text';
 					}).text();
 				}
-				
+
 				if(isTestimonial(text)){
 					$(element).addClass('testimonial');
 				} else if(wordCount(text) < 15 && text.length < 110){	// Detects the entities inside of  of the text IF text has less than 10 words-> Reduce querys to google API
@@ -212,7 +212,6 @@ function classifyTestimonials(link){
 								vetos.push(text);
 								if(paragraphLength-1 == index2){
 									const author = $(element2).next().text();
-									if()
 									testimonials.push({'text':testimonial,'author':author})
 								}
 							});
