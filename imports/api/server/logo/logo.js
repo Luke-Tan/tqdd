@@ -162,14 +162,14 @@ Meteor.methods({
 		uniqueImagesBase64.forEach(image => {
 			// DO NOT await here for each individual Promise, or you will chain
 			// your execution instead of executing them in parallel
-			console.log(image);
+			//console.log(image);
 			if(image != undefined){
 				//console.log(image.src);
 				console.log(image.data);
 				promises.push(client.logoDetection(image.data).then(results => {
 				    const logos = results[0].logoAnnotations;
 				    console.log('hi');
-				    console.log(logos);
+				    //console.log(logos);
 				    //console.log(logos);
 				    if(logos != ''){
 				    	let logosArray = [];
@@ -226,16 +226,12 @@ Meteor.methods({
 				    	return [];
 				    }
 				}).catch(err=>{
-					console.log('hi2');
-					console.log(err +'unique imgs base 64 catch error');
 					return [];
 				}));
 			}
 		});
 		// Now we can await for the Promise.all.
-		console.log(promises);
 		const resultPerImage = await Promise.all(promises);
-		console.log(resultPerImage+'RESULT PER IMAGE');
 		return resultPerImage.reduce((accumulator, imageLogosDescriptions) => {
 		  return accumulator.concat(imageLogosDescriptions);
 		}, []);
