@@ -418,7 +418,7 @@ export const plainData =
 `It is our attention to detail that ensures everything runs according to plan. You have the option to consult our creative specialists regarding marketing, branding and communication, with continued support for pre, during and post event.`,
 `Discover how you can upgrade your procurement`,
 `Great web design for everyone - time and time again...Great web design for everyone - time and time again...`,
-``,
+`Discover how you can upgrade your procurement >`,
 ``,
 ``,
 ];
