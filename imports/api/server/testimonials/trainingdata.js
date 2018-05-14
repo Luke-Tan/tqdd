@@ -416,6 +416,8 @@ export const plainData =
 `It’s been around for such quite a while in light of the fact that it works.If a web site is not visually pleasing, it is a quick turn off.If a web site is not visually pleasing, it is a quick turn off.`,
 `Call us at +65 6908 5019, or email us at . Thank you!`,
 `It is our attention to detail that ensures everything runs according to plan. You have the option to consult our creative specialists regarding marketing, branding and communication, with continued support for pre, during and post event.`,
+`Discover how you can upgrade your procurement`,
+`Great web design for everyone - time and time again...Great web design for everyone - time and time again...`,
 ``,
 ``,
 ``,

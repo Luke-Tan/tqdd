@@ -48,10 +48,8 @@ async function getImagesAsBase64(images){
 	let promises = [];
 	images.forEach(image =>{
 		promises.push(loadAsync(image).then(results =>{
-			//console.log(image);
 			return {'src':image,'data':results};
 		}).catch(err=>{
-			//console.log(err);
 			return undefined;
 		}));
 	});
@@ -164,13 +162,8 @@ Meteor.methods({
 			// your execution instead of executing them in parallel
 			//console.log(image);
 			if(image != undefined){
-				//console.log(image.src);
-				console.log(image.data);
 				promises.push(client.logoDetection(image.data).then(results => {
 				    const logos = results[0].logoAnnotations;
-				    console.log('hi');
-				    //console.log(logos);
-				    //console.log(logos);
 				    if(logos != ''){
 				    	let logosArray = [];
 				    	if(logos.length > 1){
