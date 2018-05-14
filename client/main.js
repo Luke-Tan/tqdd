@@ -1,22 +1,15 @@
 import { Template } from 'meteor/templating';
 
 //Modules
-import '/imports/ui/client/wordcloud/wordcloud.html';
-import '/imports/ui/client/whois/whois.html';
-import '/imports/ui/client/logos/logos.html';
-import '/imports/ui/client/testimonials/testimonials.html';
-
-import '/imports/ui/client/wordcloud/helpers.js';
-import '/imports/ui/client/whois/helpers.js';
-import '/imports/ui/client/logos/helpers.js';
-import '/imports/ui/client/testimonials/helpers.js';
-
+import '/imports/ui/client/index.js';
 import './main.html';
+
 import { getWhoIs } from '/imports/api/client/whois/whois.js';
 import { getWordCloud } from '/imports/api/client/wordcloud/wordcloud.js';
 import { getLogos } from '/imports/api/client/logo/logo.js';
 import { getTestimonials } from '/imports/api/client/testimonials/testimonials.js';
-import { extractRootDomain , extractHostname } from '/imports/api/client/all/functions.js';
+
+import { extractRootDomain , extractHostname, getHostName, getDomain } from '/imports/api/client/all/functions.js';
 
 //npm modules
 import scrollIntoView from 'scroll-into-view';
@@ -44,20 +37,14 @@ Template.main.onRendered(function(){
 Template.main.events({
   'submit .scrape-url'(event, instance){
     event.preventDefault();
-    //Lock scrolling to hide created elements until render is complete
-    //document.body.style.overflow = "hidden";
-    window.scroll({
-      top: 0, 
-      left: 0, 
-      behavior: 'smooth' 
-    });
 
     const enteredUrl = (event.target.text.value).toLowerCase();
     const protocol = 'http://';
     let fullUrl;
-
+    console.log(enteredUrl);
     const host = extractHostname(enteredUrl);
-    const domain = extractRootDomain(enteredUrl);
+    console.log(host);
+    const domain = getDomain(enteredUrl);
     // Meteor.call('getGoogleLinks', bareUrl, (err,result)=>{
     //     console.log(result);
     // });
@@ -79,7 +66,7 @@ Template.main.events({
 
     //Clear all Session objects
     Session.clear();
-
+    //alert(fullUrl);
     Meteor.call('checkForValidUrl',fullUrl,(err,result) => {
         if(err){
             console.error(err);

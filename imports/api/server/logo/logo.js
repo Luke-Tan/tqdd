@@ -1,16 +1,14 @@
 //npm dependancies
 import vision from '@google-cloud/vision';
-import imagescraper from './image-scraper/image-scraper';
-import google from 'google';
 import striptags from 'striptags';
 import request from 'request';
-import rp from 'request-promise';
 import cheerio from 'cheerio';
 import KGSearch from 'google-kgsearch';
 import url from 'url';
 
-
-//Variables
+//Global constants
+const logoThreshold = 0.5;
+const blurbThreshold = 30;
 
 //Instantiate Google Vision Client
 const client = new vision.ImageAnnotatorClient({
@@ -25,20 +23,18 @@ const client = new vision.ImageAnnotatorClient({
 const kGraph = KGSearch(Meteor.settings.GOOGLE_API_KEY);
 
 
-//Instantiate image scraper
-var imageScraper = new imagescraper();
-
 //Functions for loading and preparing of images in base64 buffer to send to google cloud API
 function loadAsync(image){
     return new Promise(function(resolve,reject){
+    	//console.log(image);
     	if(!image.includes('base64')){
 		    request({url: image, encoding: null}, function (err, res, body) {
 		        if (!err && res.statusCode == 200) {
 		            let image = body.toString('base64');
 		            let buf = Buffer.from(image, 'base64');
-		            resolve(buf)
+		            resolve(buf);
 		        } else {
-		            return reject(err);
+		            reject(err);
 		        }
 		    });
 		} else {
@@ -52,7 +48,11 @@ async function getImagesAsBase64(images){
 	let promises = [];
 	images.forEach(image =>{
 		promises.push(loadAsync(image).then(results =>{
+			//console.log(image);
 			return {'src':image,'data':results};
+		}).catch(err=>{
+			//console.log(err);
+			return undefined;
 		}));
 	});
 	const imagesAsBase64 = await Promise.all(promises);
@@ -64,19 +64,43 @@ function loadImages(address){
 		request(address,function(err,resp,body){
 			let imgsArray = [];
 			if(err){
-				return reject(err);
+				reject(err);
 			}
 			$ = cheerio.load(body);
 			var imgs = $('img');
 			$(imgs).each(function(i,img){
-				//console.log(img);
+
 				let src = img.attribs.src;
+
 				if(src == undefined){
-					src = img.attribs['data-cfsrc'];
+					//console.log(img.attribs);
+					let srcBreak = false;
+					Object.entries(img.attribs).forEach(
+					    ([key, value]) => {
+							if(key.includes('src') || key.includes('data')){ //Look for possible src or data attributes to find img URL
+								if(srcBreak == false){
+									src = img.attribs[key];
+									//Artificially break loop when first instance of 'src' or 'data' is found
+									srcBreak = true;
+									//console.log(src);
+								}
+					        }
+						}
+					);				
 				}
-				let imgAddress = url.resolve(address, src);
-				//console.log(imgAddress);
-				imgsArray.push(imgAddress);
+
+				/*
+
+				INCLUDE CHECK TO OBTAIN FIRST URL IF SRC IS A SRCSET!!!
+
+				*/
+
+				//If src is still undefined, do NOT attempt to resolve
+				if(src != undefined){
+					let imgAddress = url.resolve(address, src);
+					imgsArray.push(imgAddress);
+				}
+
 			})
 			resolve(imgsArray);
 		});       
@@ -99,7 +123,7 @@ function getDescription(params){
 					//console.log(item);
 					let score = item.resultScore;
 					//console.log('hi');
-					if(item.result.detailedDescription != undefined && score > 10){
+					if(item.result.detailedDescription != undefined && score > blurbThreshold){
 						content += item.result.detailedDescription.articleBody;
 					}
 					//console.log(content);
@@ -124,78 +148,94 @@ async function getDescriptionAsync(params){
 Meteor.methods({
 	async scrapeLogos(url){
 		//Set URL for imagescraper to scrape
-		imageScraper.address = url;
+		//imageScraper.address = url;
 
 		//const images = await imageScraper.scrapeAsync(50000);
 		const images = await getImages(url);
-		console.log(images);
 		let uniqueImages = Array.from(new Set(images));
+		//console.log(uniqueImages);
 		let uniqueImagesBase64 = await getImagesAsBase64(uniqueImages);
+		//console.log(uniqueImagesBase64);
 
 		let promises = [];
 
 		uniqueImagesBase64.forEach(image => {
 			// DO NOT await here for each individual Promise, or you will chain
 			// your execution instead of executing them in parallel
-			promises.push(client.logoDetection(image.data).then(results => {
-			    const logos = results[0].logoAnnotations;
-			    //console.log(logos);
-			    if(logos != ''){
-			    	let logosArray = [];
-			    	if(logos.length > 1){
-			    		let logoSet = [];
-			    		logos.forEach(logo =>{
-			    			console.log(logo.score+'logo.description');
-			    			if(logo.score>0.22){
-			    				let name = logo.description;
-								let params = {
-								  query: name,
-								  types: 'Organization',
-								  limit: 1
-								}
-								let description = getDescriptionAsync(params);
-				    			// let keyword = logo.description.replace(/ /g,'');
-				    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
-				    			// let description = striptags(logoInfo.summary);
-				    			if(description == ''){
-				    				description = "";
+			console.log(image);
+			if(image != undefined){
+				//console.log(image.src);
+				console.log(image.data);
+				promises.push(client.logoDetection(image.data).then(results => {
+				    const logos = results[0].logoAnnotations;
+				    console.log('hi');
+				    console.log(logos);
+				    //console.log(logos);
+				    if(logos != ''){
+				    	let logosArray = [];
+				    	if(logos.length > 1){
+				    		let logoSet = [];
+				    		logos.forEach(logo =>{
+				    			console.log(logo.score+ logo.description);
+				    			if(logo.score>logoThreshold){
+				    				let name = logo.description;
+									let params = {
+									  query: name,
+									  types: 'Organization',
+									  limit: 1
+									}
+									let description = getDescriptionAsync(params).await();
+					    			// let keyword = logo.description.replace(/ /g,'');
+					    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
+					    			// let description = striptags(logoInfo.summary);
+					    			if(description == ''){
+					    				description = "";
+					    			}
+					    			//console.log(logo.description+logo.score);
+					    			logoSet.push({'name':name,'description':description});
 				    			}
-				    			//console.log(logo.description+logo.score);
-				    			logoSet.push({'name':name,'description':description});
-			    			}
-			    		});
-			    		//@logoset: {name:...,description:...}
-			    		logosArray.push({'logoset':logoSet,'src':image.src, 'multilogo':true});
-			    	} else if(logos.length == 1) {
-			    		logos.forEach(logo => {
-			    			console.log(logo.score+logo.description)
-			    			if(logo.score>0.22){
-			    				let name = logo.description;
-								let params = {
-								  query: name,
-								  types: 'Organization',
-								  limit: 1
-								}
-								let description = getDescriptionAsync(params).await();
+				    		});
+									    		
+									    	/* @logoset: {name:...,description:...} */
 
-				    			// let keyword = logo.description.replace(/ /g,'');
-				    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
-				    			// let description = striptags(logoInfo.summary);
-				    			if(description == ''){
-				    				description = "";
-				    			}
-					    		logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false});
-				    		}
-				    	});
-			    	}
-			    	return logosArray;
-			    } else {
-			    	return [];
-			    }
-			}));
+				    		logosArray.push({'logoset':logoSet,'src':image.src, 'multilogo':true});
+				    	} else if(logos.length == 1) {
+				    		logos.forEach(logo => {
+				    			//console.log(logo.score+logo.description)
+				    			if(logo.score>logoThreshold){
+				    				let name = logo.description;
+									let params = {
+									  query: name,
+									  types: 'Organization',
+									  limit: 1
+									}
+									let description = getDescriptionAsync(params).await();
+
+					    			// let keyword = logo.description.replace(/ /g,'');
+					    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
+					    			// let description = striptags(logoInfo.summary);
+					    			if(description == ''){
+					    				description = "";
+					    			}
+						    		logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false});
+					    		}
+					    	});
+				    	}
+				    	return logosArray;
+				    } else {
+				    	return [];
+				    }
+				}).catch(err=>{
+					console.log('hi2');
+					console.log(err +'unique imgs base 64 catch error');
+					return [];
+				}));
+			}
 		});
 		// Now we can await for the Promise.all.
+		console.log(promises);
 		const resultPerImage = await Promise.all(promises);
+		console.log(resultPerImage+'RESULT PER IMAGE');
 		return resultPerImage.reduce((accumulator, imageLogosDescriptions) => {
 		  return accumulator.concat(imageLogosDescriptions);
 		}, []);

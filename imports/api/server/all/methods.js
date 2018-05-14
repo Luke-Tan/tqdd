@@ -6,10 +6,15 @@ import url from 'url';
 Meteor.methods({
 	checkForValidUrl(url){
 		let future = new Future();
-		request({url:url, timeout:10000},function(err,resp,body){
+		request({url:url, timeout:15000},function(err,resp,body){
+			//console.log(resp.statusCode)
 			if(!err && resp.statusCode ==200){
 				future['return'](true);
 			} else {
+				console.error(err);
+				if(resp != undefined){
+					console.error(resp.statusCode);
+				}
 				future['return'](false);
 			}
 		});

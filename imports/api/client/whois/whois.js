@@ -46,7 +46,9 @@ export function getWhoIs(url, render) {
                 } else if(name.toLowerCase().includes('tech')){
                     techArray.push({'name':name,'data':value});
                 } else if(!name.toLowerCase().includes('registrar')){
-                    otherArray.push({'name':name,'data':value});
+                    if(name != 'Domain Status'){
+                        otherArray.push({'name':name,'data':value});
+                    }
                 }
             }
         );

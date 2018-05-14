@@ -1,4 +1,4 @@
-function getHostName(url) {
+export function getHostName(url) {
     var match = url.match(/:\/\/(www[0-9]?\.)?(.[^/:]+)/i);
     if (match != null && match.length > 2 && typeof match[2] === 'string' && match[2].length > 0) {
     return match[2];
@@ -8,8 +8,8 @@ function getHostName(url) {
     }
 }
 
-export function stripToDomain(url) {
-    var hostName = getHostName(url);
+export function getDomain(url) {
+    var hostName = extractHostname(url);
     var domain = hostName;
     
     if (hostName != null) {
@@ -19,6 +19,9 @@ export function stripToDomain(url) {
             domain = parts[1] + '.' + parts[0];
                 
             if (hostName.toLowerCase().indexOf('.co.uk') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
+            if (hostName.toLowerCase().indexOf('.com.sg') != -1 && parts.length > 2) {
               domain = parts[2] + '.' + domain;
             }
         }
@@ -61,11 +64,5 @@ export function extractRootDomain(url) {
             domain = splitArr[arrLen - 3] + '.' + domain;
         }
     }
-    return domain;
-}
-
-export function getDomain(url){
-    var matches = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
-    var domain = matches && matches[1];
     return domain;
 }

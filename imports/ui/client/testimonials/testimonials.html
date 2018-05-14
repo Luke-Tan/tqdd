@@ -25,10 +25,22 @@
             </div>
           </div>
           {{#each testimonial in testimonials}}
-          <li>
-            <div class="collapsible-header"><i class="material-icons">message</i>{{testimonial.author}}</div>
-            <div class="collapsible-body"><span>{{testimonial.text}}</span></div>
-          </li>
+            <li>
+              <div class="collapsible-header"><i class="material-icons">message</i>{{testimonial.author}}</div>
+              <div class="collapsible-body"><span>{{testimonial.text}}</span></div>
+            </li>
+          {{else}}
+            {{#if noTestimonialsFound }}
+              <li class="collection-item">
+                <div class="row collection-row valign wrapper">
+                  <div class="col s12 center">
+                    <h5 class="red-text">
+                      No testimonials found
+                    </h5>
+                  </div>
+                </div>
+              </li>
+            {{/if}}
           {{/each}}
         </ul>
       </div>

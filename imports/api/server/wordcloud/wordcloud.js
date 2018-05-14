@@ -2,7 +2,6 @@
 import './wordcloud.js';
 import { extractRootDomain, extractName } from '../all/functions.js';
 
-
 //npm dependancies
 import gramophone from 'gramophone';
 import renameKeys from 'rename-keys';
@@ -43,7 +42,7 @@ function analyze(params) {
 				keywords.forEach((item,index)=>{
 					let text = item.text;
 					let weight = item.relevance;
-					let freq = Math.ceil((weight**3)*65);
+					let freq = Math.ceil((weight**3)*50);
 					cloudList.push({'text':text,'weight':freq})
 				});
 
@@ -53,7 +52,7 @@ function analyze(params) {
 						let item = keywords[i];
 						let text = item.text;
 						let weight = item.relevance;
-						let freq = Math.ceil((weight**3)*65);
+						let freq = Math.ceil((weight**3)*50);
 						chartList.push({'text':text,'weight':freq});
 					}
 				}
@@ -64,27 +63,11 @@ function analyze(params) {
 }
 
 Meteor.methods({
-	scrapeText(url){
+	async scrapeText(url){
 		let cloudList = [];
 		let chartList = [];
-		// let allText = [];
-		// let bigtext;
-		// console.log(urls);
-		// urls.forEach((url,index)=>{
-		// 	const html = Scrape.website(url);
-		// 	const text = html.text;
-		// 	if(!allText.includes(text)){
-		// 		allText.push(text);
-		// 	} else {
-		// 		console.log('hi');
-		// 	}
-		// });
-		// allText.forEach((text,index)=>{
-		// 	bigtext += text;
-		// });
+
 		let rootDomain = extractRootDomain(url);
-		// console.log(rootDomain);
-		//let websiteName = extractName(rootDomain);
 
 		let params = {
 		  'url': url,
@@ -100,7 +83,7 @@ Meteor.methods({
 		  "language": "en",
 		}
 
-		const result = analyze(params).await();
+		const result = await analyze(params);
 
 		return result;
 	}

@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.42",
+    "@google-cloud/language": "^1.2.0",
     "@google-cloud/vision": "^0.15.2",
     "babel-runtime": "^6.26.0",
     "base64-img": "^1.0.4",
