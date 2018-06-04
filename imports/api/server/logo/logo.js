@@ -6,11 +6,11 @@ import cheerio from 'cheerio';
 import KGSearch from 'google-kgsearch';
 import url from 'url';
 
-//Global constants
-const logoThreshold = 0.5;
-const blurbThreshold = 30;
+/* Global constants */
+const logoThreshold = 0.5;		// Confidence threshold to accept/reject a logo from Google Vision
+const blurbThreshold = 30;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
-//Instantiate Google Vision Client
+/* Instantiate Google Vision Client */
 const client = new vision.ImageAnnotatorClient({
 	projectId: Meteor.settings.PROJECT_ID,
 	credentials: {
@@ -19,11 +19,11 @@ const client = new vision.ImageAnnotatorClient({
 	}
 });
 
-//Instantiate Google Knowledge Graph Search
+/* Instantiate Google Knowledge Graph */
 const kGraph = KGSearch(Meteor.settings.GOOGLE_API_KEY);
 
 
-//Functions for loading and preparing of images in base64 buffer to send to google cloud API
+/* Functions for loading and preparing of images in base64 buffer to send to google cloud API */
 function loadAsync(image){
     return new Promise(function(resolve,reject){
     	//console.log(image);
@@ -31,15 +31,15 @@ function loadAsync(image){
 		    request({url: image, encoding: null}, function (err, res, body) {
 		        if (!err && res.statusCode == 200) {
 		            let image = body.toString('base64');
-		            let buf = Buffer.from(image, 'base64');
-		            resolve(buf);
+		            let buffer = Buffer.from(image, 'base64');
+		            resolve(buffer);
 		        } else {
 		            reject(err);
 		        }
 		    });
 		} else {
-			let buf = Buffer.from(image, 'base64');
-			resolve(buf);
+			let buffer = Buffer.from(image, 'base64');
+			resolve(buffer);
 		}     
     });
 }
@@ -78,8 +78,7 @@ function loadImages(address){
 							if(key.includes('src') || key.includes('data')){ //Look for possible src or data attributes to find img URL
 								if(srcBreak == false){
 									src = img.attribs[key];
-									//Artificially break loop when first instance of 'src' or 'data' is found
-									srcBreak = true;
+									srcBreak = true; //Artificially break loop when first instance of 'src' or 'data' is found
 									//console.log(src);
 								}
 					        }
@@ -105,11 +104,6 @@ function loadImages(address){
     });	
 }
 
-async function getImages(url){
-	let images = await loadImages(url);
-	return images;
-}
-
 function getDescription(params){
 	return new Promise(function(resolve,reject){
 		kGraph.search(params, (err, items) => {
@@ -133,23 +127,16 @@ function getDescription(params){
 	});
 }
 
-async function getDescriptionAsync(params){
-	const content = await getDescription(params).then(results=>{
-		return results;
-	});
-	return content;
-}
-
 //google.resultsPerPage = 1;
 
-//Methods to be called by client to scrape for images
+/* Methods to be called by client to scrape for images */
 Meteor.methods({
 	async scrapeLogos(url){
 		//Set URL for imagescraper to scrape
 		//imageScraper.address = url;
 
 		//const images = await imageScraper.scrapeAsync(50000);
-		const images = await getImages(url);
+		const images = await loadImages(url);
 		let uniqueImages = Array.from(new Set(images));
 		//console.log(uniqueImages);
 		let uniqueImagesBase64 = await getImagesAsBase64(uniqueImages);
@@ -177,7 +164,7 @@ Meteor.methods({
 									  types: 'Organization',
 									  limit: 1
 									}
-									let description = getDescriptionAsync(params).await();
+									let description = getDescription(params).await();
 					    			// let keyword = logo.description.replace(/ /g,'');
 					    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
 					    			// let description = striptags(logoInfo.summary);
@@ -202,7 +189,7 @@ Meteor.methods({
 									  types: 'Organization',
 									  limit: 1
 									}
-									let description = getDescriptionAsync(params).await();
+									let description = getDescription(params).await();
 
 					    			// let keyword = logo.description.replace(/ /g,'');
 					    			// let logoInfo = Scrape.wikipedia(keyword, 'en');

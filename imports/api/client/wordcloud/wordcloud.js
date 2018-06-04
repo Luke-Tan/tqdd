@@ -1,13 +1,15 @@
 import '/imports/ui/client/wordcloud/jqcloud.css';
-import '/imports/ui/client/content.html';
 
 export function getWordCloud(urls, render){
 
+    /* Destroy any existing Wordcloud and Canvas */
     $('#wordcloud').jQCloud('destroy');
     $("#chart-canvas").remove();
+
+    /* Create new canvas */
     var newcanv = document.createElement('canvas');
     newcanv.id = 'chart-canvas';
-    $( "#chart" ).append(newcanv);
+    $("#chart").append(newcanv);
     const canvas = document.getElementById('chart-canvas');
     const ctx = canvas.getContext('2d');
     
@@ -16,7 +18,7 @@ export function getWordCloud(urls, render){
         const cloudWords = result[0];
         const chartWords = result[1];
 
-        var myChart;
+        let myChart;
         let labels = [];
         let data = [];
         let backgroundColors = [];
@@ -30,8 +32,6 @@ export function getWordCloud(urls, render){
             backgroundColors.push(color);
             borderColors.push(color);
         });
-
-        //Destroy existing canvas and create new one to use as chart
 
         myChart = new Chart(ctx, {
             type: 'bar',

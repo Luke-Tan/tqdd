@@ -13,6 +13,7 @@
     "canvas": "^1.6.9",
     "change-case": "^3.0.2",
     "compromise": "^11.6.0",
+    "corenlp": "^1.4.2",
     "fibers": "^2.0.0",
     "get-image-urls": "^1.0.5",
     "google": "^2.1.0",

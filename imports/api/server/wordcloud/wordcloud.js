@@ -3,10 +3,6 @@ import './wordcloud.js';
 import { extractRootDomain, extractName } from '../all/functions.js';
 
 //npm dependancies
-import gramophone from 'gramophone';
-import renameKeys from 'rename-keys';
-import sentiment from 'sentiment';
-import nlp from 'compromise';
 import NaturalLanguageUnderstandingV1 from 'watson-developer-cloud/natural-language-understanding/v1.js';
 
 var nlu = new NaturalLanguageUnderstandingV1({
@@ -42,7 +38,7 @@ function analyze(params) {
 				keywords.forEach((item,index)=>{
 					let text = item.text;
 					let weight = item.relevance;
-					let freq = Math.ceil((weight**3)*50);
+					let freq = Math.ceil((weight**3)*40);
 					cloudList.push({'text':text,'weight':freq})
 				});
 
@@ -52,7 +48,7 @@ function analyze(params) {
 						let item = keywords[i];
 						let text = item.text;
 						let weight = item.relevance;
-						let freq = Math.ceil((weight**3)*50);
+						let freq = Math.ceil((weight**3)*40);	// Make items with an already large weightage scale heigher, and a flat factor of 40 to increase weightage to all items
 						chartList.push({'text':text,'weight':freq});
 					}
 				}

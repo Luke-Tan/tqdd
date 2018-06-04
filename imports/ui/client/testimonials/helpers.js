@@ -1,5 +1,5 @@
 import { Template } from 'meteor/templating';
-
+import { updateTestimonials } from '/imports/api/client/testimonials/testimonials.js'
 import './testimonials.html';
 
 Template.testimonials_template.helpers({
@@ -19,4 +19,41 @@ Template.testimonials_template.helpers({
     		return false
     	}
     }
+});
+
+Template.testimonial_template.events({
+  'click .upvote'(event) {
+    const text = this.text
+    const id = this.id
+
+    //Change colors of thumbs up/down buttons
+    const thumbUp = event.target
+    thumbUp.classList.remove('grey-text');   
+    thumbUp.classList.remove('green-text');   
+    thumbUp.classList.add('green-text'); 
+    const thumbDown = document.getElementById(id+'_thumbdown');
+    thumbDown.classList.remove('red-text');
+    thumbDown.classList.remove('grey-text');
+    thumbDown.classList.add('grey-text');
+
+    //Propagate upvote/downvote to db
+    updateTestimonials(text,'correct');
+  },
+  'click .downvote'(event) {
+    const text = this.text
+    const id = this.id
+
+    //Change colors of thumbs up/down buttons
+    const thumbDown = event.target
+    thumbDown.classList.remove('red-text');
+    thumbDown.classList.remove('grey-text');
+    thumbDown.classList.add('red-text');
+    const thumbUp = document.getElementById(id+'_thumbup');  
+    thumbUp.classList.remove('green-text');
+    thumbUp.classList.remove('grey-text');
+    thumbUp.classList.add('grey-text');
+
+    //Propagate upvote/downvote to db
+    updateTestimonials(text,'wrong')
+  },
 });

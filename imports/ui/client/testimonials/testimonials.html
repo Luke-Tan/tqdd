@@ -24,11 +24,8 @@
               </div>
             </div>
           </div>
-          {{#each testimonial in testimonials}}
-            <li>
-              <div class="collapsible-header"><i class="material-icons">message</i>{{testimonial.author}}</div>
-              <div class="collapsible-body"><span>{{testimonial.text}}</span></div>
-            </li>
+          {{#each testimonials}}
+            {{>testimonial_template}}
           {{else}}
             {{#if noTestimonialsFound }}
               <li class="collection-item">
@@ -46,4 +43,33 @@
       </div>
     </div>
   </div>
+</template>
+
+<template name="testimonial_template">
+  <li>
+    <div class="collapsible-header"><i class="material-icons">message</i>{{author}}</div>
+    <div class="collapsible-body">
+      <div class="row no-margin valign-wrapper">
+        <div class="col s10">
+          <span>{{text}}</span>
+        </div>
+        <div class="col s2 center">
+          <div class="row no-margin">
+            <div class="col s12">
+              <a class="btn btn-floating transparent no-shadow upvote">
+                <i class="material-icons grey-text" id={{id}}_thumbup>thumb_up</i>
+              </a>
+            </div>
+          </div>
+          <div class="row no-margin">
+            <div class="col s12">
+              <a class="btn btn-floating transparent no-shadow downvote">
+                <i class="material-icons grey-text" id={{id}}_thumbdown>thumb_down</i>
+              </a>
+            </div>
+          </div>                  
+        </div>
+      </div>
+    </div>
+  </li>
 </template>

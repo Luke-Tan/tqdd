@@ -15,8 +15,6 @@ import { extractRootDomain , extractHostname, getHostName, getDomain } from '/im
 import scrollIntoView from 'scroll-into-view';
 
 
-BlazeLayout.render('layout', {hi:'main'});
-
 Template.content.helpers({
     websiteName(){
         let websiteName = Session.get('websiteName');
@@ -39,7 +37,7 @@ Template.main.events({
     event.preventDefault();
 
     const enteredUrl = (event.target.text.value).toLowerCase();
-    const protocol = 'http://';
+    const protocol = 'http://';             // Use default protocol http 
     let fullUrl;
     console.log(enteredUrl);
     const host = extractHostname(enteredUrl);
@@ -48,52 +46,52 @@ Template.main.events({
     // Meteor.call('getGoogleLinks', bareUrl, (err,result)=>{
     //     console.log(result);
     // });
-    if(domain == enteredUrl){
-        //Assume that url does not contain a subdomain
+    if(domain == enteredUrl){               // Assume that url does not contain a subdomain
         fullUrl = protocol+'www.'+domain;
-    } else {
-        //Assume that url contains a subdomain
+    } else {                                // Assume that url contains a subdomain
         fullUrl = protocol + host;
     }
 
     console.log(fullUrl);
-    event.target.text.value = '';
-    $('ul.tabs').tabs('select_tab', 'wordcloud');
-    $('#preloader').removeClass('invisible');
 
-    $("#url").prop('disabled', true);
-    $("#search").addClass('disabled');
+    /* Initialize scraping */
+    event.target.text.value = '';                       // Reset input bar after search
+    $('ul.tabs').tabs('select_tab', 'wordcloud');       // Set the tab to the wordcloud to avoid problems with drawing of the wordcloud
+    $('#preloader').removeClass('invisible');           // Show loading bar
+    $("#url").prop('disabled', true);                   /* Temporarily disable input box until the search is complete */
+    $("#search").addClass('disabled');                  /* Temporarily disable search button until the search is complete */    
 
-    //Clear all Session objects
-    Session.clear();
-    //alert(fullUrl);
-    Meteor.call('checkForValidUrl',fullUrl,(err,result) => {
+    Session.clear();    //Clear all Session objects
+
+    Meteor.call('checkForValidUrl',fullUrl,(err,result) => {    // Ping the website to check if it is a valid website to scrape
         if(err){
             console.error(err);
         }
-        console.log(result);
-        $("#url").prop('disabled', false);
-        $("#search").removeClass('disabled');
+        
+        $("#url").prop('disabled', false);                      // Re-enable input box after ping
+        $("#search").removeClass('disabled');                   // Re-enable search button after ping
 
-        if(result == false){
+        if(result == false){                                    // Error handling if the website is NOT able to be scraped
             Materialize.toast('Unable to scan URL. Please check if the url entered is valid!', 4000);
              $('#preloader').addClass('invisible');
         } else {
-            BlazeLayout.render('layout2', { top: "main",bot:"content"});
+            BlazeLayout.render('layout2', { top: "main",bot:"content"});    // Render layout with contents below included
 
-            //Make all preloaders visible
+            // Make all preloaders visible
             $("#wordcloud-preloader").removeClass('invisible');
             $('#wordchart-preloader').removeClass('invisible');
             $("#whois-preloader").removeClass('invisible');
             $("#logos-preloader").removeClass('invisible');
             $("#testimonials-preloader").removeClass('invisible');
 
-            //Temporarily disable wordcloud tabs
+            // Temporarily disable wordcloud tabs to prevent issues
             $("#wordcloud-tab").addClass('disabled');
             $('#wordchart-tab').addClass('disabled');
 
+            // Set the website name to display in the 'Results for website' Textbox
             Session.set('websiteName',fullUrl);
 
+            // Scroll down to the results after the ping has completed
             document.querySelector('#resultsBelow').scrollIntoView({ 
                 behavior: 'smooth' 
             }); 
@@ -104,9 +102,6 @@ Template.main.events({
 
 
             $('#preloader').addClass('invisible');
-            //Disable input and show preloader while rendering
-            // $("#url").prop('disabled', true);
-            // $("#search").addClass('disabled');
 
             getWordCloud(fullUrl, ()=>{
                 //Make all preloaders invisible
@@ -127,9 +122,8 @@ Template.main.events({
             });
 
             getTestimonials(fullUrl, ()=>{
-                //Make all preloaders invisible
-                $("#testimonials-preloader").addClass('invisible');
-                $('.collapsible').collapsible();
+                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+                $('.collapsible').collapsible(); // Initialize the Materialize collapsible
             });
         }
     });
