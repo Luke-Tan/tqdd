@@ -3,6 +3,10 @@ import Future from 'fibers/future';
 import cheerio from 'cheerio';
 import url from 'url';
 
+import {
+	getName 
+} from './functions.js'
+
 Meteor.methods({
 	checkForValidUrl(url){
 		let future = new Future();
@@ -50,7 +54,7 @@ Meteor.methods({
 		});
 		return future.wait();
 	},
-	getNameAndLogo(url){
+	getNameAndLogo(url,domain){
 		// 1. Clearbit
 		// 2. Copyright
 		// 3. URL
@@ -58,11 +62,11 @@ Meteor.methods({
 			name:'',
 			logo:''
 		}
+		const companyDomain = domain;
 		const companyUrl = url;
-		const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyUrl}`;
+		const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyDomain}`;
 		return new Promise((resolve,reject)=>{
 			request(clearbitAPIendpoint,(err,resp,body)=>{
-				console.log(body);
 				const json = JSON.parse(body);
 				if(err){
 					reject(err)
@@ -77,8 +81,12 @@ Meteor.methods({
 			    	resolve(nameAndLogo);
 				} else {
 					request(companyUrl,(err,resp,body)=>{
+						if(err){
+							reject(err);
+						}
 					    //console.log(body)
 					    //console.log(err)
+					    console.log(body)
 					    let $ = cheerio.load(body);
 					    let copyright = '';
 
@@ -104,34 +112,43 @@ Meteor.methods({
 								}
 							}
 						});
-						copyright = copyright.trim()
-						copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
-						copyright = copyright.replace(/[.]/g,'')	  /* Replace all full stops with empty space */
-						copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
-						copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
-						copyright = copyright.filter(word => !word.includes('-') && !(/^\d{4}$/).test(word)) /* Remove all hyphens and years from within the array */
-						const start = copyright.indexOf('©')+1
-						let end;
-						if(copyright.includes('pte')){
-							end = copyright.indexOf('pte')
-						} else if(copyright.includes('all')){
-							end = copyright.indexOf('all');
-						} else if(copyright.includes('llc')){
-							end = copyright.indexOf('llc')
-						} else if(copyright.includes()){
 
+						if(copyright != ''){
+							copyright = copyright.trim()
+							copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
+							copyright = copyright.replace(/[.]/g,'')	  /* Replace all full stops with empty space */
+							copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
+							copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
+							copyright = copyright.filter(word => !word.includes('-') && !(/^\d{4}$/).test(word)) /* Remove all hyphens and years from within the array */
+							const start = copyright.indexOf('©')+1
+							let end;
+							if(copyright.includes('pte')){
+								end = copyright.indexOf('pte')
+							} else if(copyright.includes('all')){
+								end = copyright.indexOf('all');
+							} else if(copyright.includes('llc')){
+								end = copyright.indexOf('llc')
+							} else if(copyright.includes()){
+
+							} else {
+								end = start+2	/* If no relevant end marker is found, assume that the company has 2 words as its name */
+							}
+							let name = copyright.slice(start,end);
+							name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+							name = name.toString().replace(/[,]/g,' ');
+							nameAndLogo = {
+								name:name,
+								logo:''
+							}
+							resolve(nameAndLogo)
 						} else {
-							end = start+2	/* If no relevant end marker is found, assume that the company has 2 words as its name */
+							name = getName(companyDomain)
+							nameAndLogo = {
+								name:name,
+								logo:''
+							}
+							resolve(nameAndLogo)
 						}
-						let name = copyright.slice(start,end);
-						name = name.toString().replace(/[,]/g,' ');
-						name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
-						name = name.toString().replace(/[,]/g,' ');
-						nameAndLogo = {
-							name:name,
-							logo:''
-						}
-						resolve(nameAndLogo)
 					});
 				}
 			});

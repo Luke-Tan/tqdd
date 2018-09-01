@@ -140,7 +140,7 @@ function getNews(name){
 		// 	}
 		// 	resolve(news)
 		// })
-		const query = name.toLowerCase();
+		const query = name;
 		const newsUrl = `https://www.google.com/search?q="${query}"&tbm=nws`
 		request(newsUrl, (err,resp,body)=>{
 			if(err){
@@ -162,7 +162,7 @@ function getNews(name){
 		                newsLinks.push(url)
 		                const linkContainer = $(e).parent();
 		                const snippet = $(linkContainer).next().next().text();
-		                if(snippet.toLowerCase().includes(query)){
+		                if(snippet.includes(query)){
 		                    const title = $(e).text();
 		                    const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
 		                    const publishDetails = $(linkContainer).next().text();

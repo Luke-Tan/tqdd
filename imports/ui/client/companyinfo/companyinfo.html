@@ -38,18 +38,38 @@
                 	<div class="row">
                     <div class="col s5" style="margin-right:10px">
                   		<div class="row left-align">
-  								      <i class="material-icons info-icon blue-text">location_on</i><span class="info-text">{{companyInfoObj.address}}</span>
+  								      <i class="material-icons info-icon blue-text">location_on</i>
+                        {{#if companyInfoObj.address}}
+                          <span class="info-text">{{companyInfoObj.address}}</span>
+                        {{else}}
+                          <span class="info-text red-text">No Address Found</span>
+                        {{/if}}
   							      </div>
         							<div class="row left-align">
-        								<i class="material-icons info-icon blue-text">people</i><span class="info-text">{{companyInfoObj.employees}}</span>
+        								<i class="material-icons info-icon blue-text">people</i>
+                        {{#if companyInfoObj.employees}}
+                          <span class="info-text">{{companyInfoObj.employees}}</span>
+                        {{else}}
+                          <span class="info-text red-text">Employee count not found</span>
+                        {{/if}}
         							</div>
   						      </div>
         						<div class="col s5">
         							<div class="row left-align">
-        								<i class="material-icons info-icon blue-text">calendar_today</i><span class="info-text">Founded in {{companyInfoObj.year}}</span>
+        								<i class="material-icons info-icon blue-text">calendar_today</i>
+                        {{#if companyInfoObj.year}}
+                          <span class="info-text">Founded in {{companyInfoObj.year}}</span>
+                        {{else}}
+                          <span class="info-text red-text">Company Age Not Found</span>
+                        {{/if}}
         							</div>
         							<div class="row left-align">
-        								<i class="material-icons info-icon blue-text">phone</i><span class="info-text">{{companyInfoObj.phone}}</span>
+        								<i class="material-icons info-icon blue-text">phone</i>
+                        {{#if companyInfoObj.phone}}
+                          <span class="info-text">{{companyInfoObj.phone}}</span>
+                        {{else}}
+                          <span class="info-text red-text">Company Phone Not Found</span>
+                        {{/if}}
         							</div>
         						</div>
                 	</div>

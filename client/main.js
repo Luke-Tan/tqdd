@@ -121,7 +121,7 @@ Template.main.events({
 
             //Session.set('social',[social]);
             //$('#social-preloader').addClass('invisible');
-            Meteor.call('getNameAndLogo',domain,(err,result)=>{
+            Meteor.call('getNameAndLogo',fullUrl,domain,(err,result)=>{
                 // Any module that requires the company name should be put in here
                 console.log(result);
                 const name = result.name;
@@ -150,28 +150,28 @@ Template.main.events({
             // Session.set('companyInfo', companyInfo);
             // $('#companyinfo-preloader').addClass('invisible');
 
-            getWordCloud(fullUrl, ()=>{
-                //Make all preloaders invisible
-                $("#wordcloud-preloader").addClass('invisible');
-                $('#wordchart-preloader').addClass('invisible');
-                $("#wordcloud-tab").removeClass('disabled');
-                $('#wordchart-tab').removeClass('disabled');
+            // getWordCloud(fullUrl, ()=>{
+            //     //Make all preloaders invisible
+            //     $("#wordcloud-preloader").addClass('invisible');
+            //     $('#wordchart-preloader').addClass('invisible');
+            //     $("#wordcloud-tab").removeClass('disabled');
+            //     $('#wordchart-tab').removeClass('disabled');
 
-            });
+            // });
 
-            getWhoIs(domain, ()=>{
-                //Make all preloaders invisible
-                $("#whois-preloader").addClass('invisible');
-            });
-            getLogos(fullUrl, () =>{
-                //Make all preloaders invisible
-                $('#logos-preloader').addClass('invisible');    
-            });
+            // getWhoIs(domain, ()=>{
+            //     //Make all preloaders invisible
+            //     $("#whois-preloader").addClass('invisible');
+            // });
+            // getLogos(fullUrl, () =>{
+            //     //Make all preloaders invisible
+            //     $('#logos-preloader').addClass('invisible');    
+            // });
 
-            getTestimonials(fullUrl, ()=>{
-                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-                $('.collapsible').collapsible(); // Initialize the Materialize collapsible
-            });
+            // getTestimonials(fullUrl, ()=>{
+            //     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+            //     $('.collapsible').collapsible(); // Initialize the Materialize collapsible
+            // });
 
         }
     });

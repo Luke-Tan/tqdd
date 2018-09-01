@@ -8,7 +8,10 @@ import alexaData from 'alexa-traffic-rank';
 import csv from "csv-query";
 
 /* Fuzzy Match algorithm */
-import { fuzzyMatch } from '../all/functions.js'
+import { 
+	fuzzyMatch,
+	getDomain,
+} from '../all/functions.js'
 /*
 Workflow:
 1) Get company name from clearbit API using URL
@@ -96,38 +99,51 @@ Meteor.methods({
 								}
 			                    let $ = cheerio.load(body)
 
-			                    /* Year that Company was founded */
-			                    const td = $('td')
-			                    $(td).each((index,element)=>{
-			                        const text = $(element).text().trim()
-			                        if(text.length == 4 && !isNaN(text)){
-			                            companyDetails.year = text
-			                            const date = new Date();
-			                            const year = date.getFullYear();
-			                            const age = year-text.toString();
-			                            companyDetails.age = age
-			                        }
-			                    })
+			                    /* First we check if its the page we want by comparing the website URL to our own URL */
 
-			                    /* Number of employees */
-			                    $('.number').each((index,element)=>{
-			                    	const text = $(element).text().trim()
-			                    	if(text.includes('Employees')){
-			                    		companyDetails.employees = text
-			                    	}
-			                    })
+			                    const companyUrlFromKompass = $('#website').attr('href');
+			                    const companyDomainFromKompass = getDomain(companyUrlFromKompass);
+			                    const companyDomain = getDomain(companyUrl);
+			                    console.log(companyDomain);
+			                    console.log(companyDomainFromKompass);
 
-			                    /* Company Phone Number */
-							    const phoneNumberParent = $('.phoneCompany').first();
-							    const phoneNumber = $(phoneNumberParent).children('input').first().attr('value');
-							  	companyDetails.phone = phoneNumber;
+			                    if(companyDomain == companyDomainFromKompass){
+			                    	/* Year that Company was founded */
+				                    const td = $('td')
+				                    $(td).each((index,element)=>{
+				                        const text = $(element).text().trim()
+				                        if(text.length == 4 && !isNaN(text)){
+				                            companyDetails.year = text
+				                            const date = new Date();
+				                            const year = date.getFullYear();
+				                            const age = year-text.toString();
+				                            companyDetails.age = age
+				                        }
+				                    })
 
-							  	/* Company Address */
-			                    const address = $('span[itemprop=streetAddress]').text().trim();
-			                    const country  = $('span[itemprop=addressCountry]').text().trim();
-			                    const fullAddress = `${address}, ${country}`
-			                    companyDetails.address = fullAddress;
-			                    resolve(companyDetails);
+				                    /* Number of employees */
+				                    $('.number').each((index,element)=>{
+				                    	const text = $(element).text().trim()
+				                    	if(text.includes('Employees')){
+				                    		companyDetails.employees = text
+				                    	}
+				                    })
+
+				                    /* Company Phone Number */
+								    const phoneNumberParent = $('.phoneCompany').first();
+								    const phoneNumber = $(phoneNumberParent).children('input').first().attr('value');
+								  	companyDetails.phone = phoneNumber;
+
+								  	/* Company Address */
+				                    const address = $('span[itemprop=streetAddress]').text().trim();
+				                    const country  = $('span[itemprop=addressCountry]').text().trim();
+				                    const fullAddress = `${address}, ${country}`
+				                    companyDetails.address = fullAddress;
+				                    resolve(companyDetails);
+				                } else {
+				                	companyDetails.employees = "0-9 Employees"
+				                	resolve(companyDetails);
+				                }
 			                });
 			                return false; 
 			            } else {
