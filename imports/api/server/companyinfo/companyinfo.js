@@ -141,8 +141,9 @@ Meteor.methods({
 				                    companyDetails.address = fullAddress;
 				                    resolve(companyDetails);
 				                } else {
-				                	companyDetails.employees = "0-9 Employees"
-				                	resolve(companyDetails);
+				                	// companyDetails.employees = "0-9 Employees"
+				                	// resolve(companyDetails);
+				                	resolve(fallBack(companyUrl));
 				                }
 			                });
 			                return false; 
