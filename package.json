@@ -10,7 +10,6 @@
     "@google-cloud/vision": "^0.15.2",
     "alexa-traffic-rank": "^1.0.1",
     "babel-runtime": "^6.26.0",
-    "base64-img": "^1.0.4",
     "canvas": "^1.6.9",
     "change-case": "^3.0.2",
     "compromise": "^11.6.0",
