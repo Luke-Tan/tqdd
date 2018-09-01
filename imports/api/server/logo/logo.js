@@ -7,7 +7,7 @@ import KGSearch from 'google-kgsearch';
 import url from 'url';
 
 /* Global constants */
-const logoThreshold = 0.5;		// Confidence threshold to accept/reject a logo from Google Vision
+const logoThreshold = 0.3;		// Confidence threshold to accept/reject a logo from Google Vision
 const blurbThreshold = 30;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
 /* Instantiate Google Vision Client */

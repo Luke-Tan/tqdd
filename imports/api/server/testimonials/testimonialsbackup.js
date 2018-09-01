@@ -59,46 +59,46 @@ function isAuthorPreCheck(text){
 	}
 }
 
-// async function isAuthor(text,element){
+async function isAuthor(text,element){
 
-// 	const document = {
-// 		content:text,
-// 		type: 'PLAIN_TEXT',
-// 	}
-// 	count();
-// 	const result = await client
-// 	  .analyzeEntities({document: document})
-// 	  .then(results => {
-// 	    const entities = results[0].entities;
-// 	    let people = 0;
-// 	    let organizations = 0;
+	const document = {
+		content:text,
+		type: 'PLAIN_TEXT',
+	}
+	count();
+	const result = await client
+	  .analyzeEntities({document: document})
+	  .then(results => {
+	    const entities = results[0].entities;
+	    let people = 0;
+	    let organizations = 0;
 
-// 	    entities.forEach(entity => {
+	    entities.forEach(entity => {
 	      
-// 	      if(entity.type == 'PERSON'){
+	      if(entity.type == 'PERSON'){
 	      	
-// 	        people++
-// 	      }
-// 	      if(entity.type == 'ORGANIZATION'){
-// 	      	organizations++
-// 	      }
-// 	    });
+	        people++
+	      }
+	      if(entity.type == 'ORGANIZATION'){
+	      	organizations++
+	      }
+	    });
 	   	
-// 	   	if(0<people && people <3 || organizations == 1){
-// 	   		console.log(text);
-// 	   		return {'text':text,'element':element};
-// 	   	} else {
-// 	   		return '';
-// 	   	}
-// 	  })
-// 	  .catch(err => {
-// 	    console.error('ERROR:', err);
-// 	    return '';
-// 	});
+	   	if(0<people && people <3 || organizations == 1){
+	   		console.log(text);
+	   		return {'text':text,'element':element};
+	   	} else {
+	   		return '';
+	   	}
+	  })
+	  .catch(err => {
+	    console.error('ERROR:', err);
+	    return '';
+	});
 
-// 	return result;
+	return result;
 
-// }
+}
 
 function countEntities(entities){
 	return entities.filter(function(item, pos, arr){

@@ -1,0 +1,178 @@
+<template name="social_template">
+  <div class="section">
+    <div class="container">
+      <div class="card">
+        <ul class="collection with-header center">
+          <li class="collection-header blue-text"><h4>Social Presence</h4></li>
+          <div id="social-preloader" class="preloader-wrapper huge active invisible preloader-margin">
+            <div class="spinner-layer spinner-blue-only">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div><div class="gap-patch">
+                <div class="circle"></div>
+              </div><div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+          {{#each socialObj in social}}
+            <li class="collection-item" style="padding-left:20px !important">
+              <div class="row collection-row">
+                <div class="col s12">
+                  <h4 class="bold">{{socialObj.name}} has ...</h4>
+                </div>
+              </div>
+              <div class="row collection-row more-margin">
+                <div class="col s12">
+                  <div class="row valign-wrapper">
+                    <div style="margin:0 auto">
+                      <h5><i class="large material-icons info-icon blue-text">textsms</i>Been mentioned about <strong>{{socialObj.mentions}}</strong> times on the web</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row collection-row more-margin">
+                <div class="col s3 offset-s1">
+                  <div class="row">
+                    <div class="col s6">
+                      <img class="responsive-img social-icon right" src="facebook-icon.png">
+                    </div>
+                    <div class="col s6 left-align">
+                      <h6><strong>FB Shares</strong></h6>
+                      <h6>{{socialObj.shares.facebook}}</h6>
+                    </div>
+                  </div>
+                </div>
+                <div class="col s4">
+                  <div class="row valign-wrapper">
+                    <div class="col s6">
+                      <img class="responsive-img social-icon right" src="pinterest-icon.png">
+                    </div>
+                    <div class="col s6 left-align">
+                      <h6><strong>Pins</strong></h6>
+                      <h6>{{socialObj.shares.pinterest}}</h6>
+                    </div>
+                  </div>
+                </div>
+                <div class="col s3">
+                  <div class="row">
+                    <div class="col s6">
+                      <img class="responsive-img social-icon right" src="stumbledupon-icon.png">
+                    </div>
+                    <div class="col s6 left-align">
+                      <h6><strong>Stumbles</strong></h6>
+                      <h6>{{socialObj.shares.stumbles}}</h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="row collection-row">
+                <div class="col s12">
+                  <div class="row">
+                    <div class="col s12">
+                      <h4 class="bold blue-text lighten-3">News Mentions</h4>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s10 push-s1">
+                      {{#if socialObj.news}}
+                        {{#each news in socialObj.news}}
+                          <div class="card-panel">
+                            <div class="row collection-row">
+                              <div class="col s10 push-s1">
+                                <div class="row valign-wrapper">
+                                  <div class="col s2">
+                                    <a href={{news.url}}>
+                                      <img src={{news.thumbnail}}>
+                                    </a>
+                                  </div>
+                                  <div class="col s10 left-align">
+                                    <a href={{news.url}}>
+                                      <h5>
+                                        {{news.title}}  
+                                      </h5>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col s6 left-align">
+                                    <h6>
+                                      <strong>{{news.publisher}}</strong>
+                                    </h6>
+                                  </div>
+                                  <div class="col s6 right-align">
+                                    <h6>
+                                      <strong>{{news.date}}</strong>
+                                    </h6>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col s12 left-align">
+                                    {{news.snippet}}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {{/each}}
+                      {{else}}
+                        <h5 class="red-text">
+                          No news found
+                        </h5>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="row collection-row">
+                <div class="col s12">
+                  <div class="row">
+                    <div class="col s12">
+                      <h4 class="bold blue-text lighten-3">Job Openings</h4>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s12">
+                      {{#if socialObj.jobs}}
+                          <table>
+                            <thead>
+                              <tr>
+                                  <th class="center">Position</th>
+                                  <th class="center">Salary</th>
+                                  <th class="center">Date Posted</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {{#each job in socialObj.jobs}}
+                                {{#if job.title}}
+                                  <tr>
+                                    <td class="center">{{job.title}}</td>
+                                    {{#if job.salary}}
+                                      <td class="center">{{job.salary}}</td>
+                                    {{else}}
+                                      <td class="center red-text">No salary provided</td>
+                                    {{/if}}
+                                    <td class="center">{{job.age}}</td>
+                                  </tr>
+                                {{/if}}
+                              {{/each}}
+                            </tbody>
+                          </table>
+                      {{else}}
+                        <h5 class="red-text">
+                          No news found
+                        </h5>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>

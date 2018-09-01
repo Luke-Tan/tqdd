@@ -10,9 +10,13 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
 }
-canvas{
+canvas {
 	/*height:510px !important;*/
 	width:100% !important;
+}
+
+td {
+	max-width:100px !important;
 }
 
 .website-logo {
@@ -21,6 +25,10 @@ canvas{
 	top:10px;
 	width: auto;
 	height: 75px;
+}
+
+.bold {
+	font-weight:500;
 }
 
 .search {
@@ -121,6 +129,14 @@ canvas{
 	margin:0 !important;
 }
 
+.no-margin-left {
+	margin-left:0 !important;
+}
+
+.no-margin-bottom {
+	margin-bottom:0 !important;
+}
+
 .large-carousel {
 	height:780px !important;
 }
@@ -139,6 +155,40 @@ canvas{
 
 .invisible {
 	display:none !important;
+}
+
+.info-icon {
+	margin-right:8px;
+	vertical-align:middle;
+}
+
+.info-text {
+	vertical-align: middle;
+}
+
+.vertical-divider {
+    position:absolute;
+    right:0;
+    height:100%;
+    border-left:1px solid black;	
+}
+
+.companyinfo-logo {
+	width:100px;
+	height:auto;
+}
+
+.social-icon {
+	max-width:50px;
+	max-height:50px;
+}
+
+.row.more-margin {
+	margin-bottom:30px !important;
+} 
+
+.no-pad {
+	padding: 0 !important;
 }
 
 

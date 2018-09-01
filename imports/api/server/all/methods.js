@@ -50,21 +50,92 @@ Meteor.methods({
 		});
 		return future.wait();
 	},
-	getGoogleLinks(query){
-		let future = new Future();
-		const apiKey = Meteor.settings.GOOGLE_API_KEY;
-		const cx = '001667370438783560875:zefmarr8i8w';
-		const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}`;
-		request(url,function(err,resp,body){
-			let bodyJSON = JSON.parse(body);
-			let results = bodyJSON.items;
-			let linksArray = [];
-			results.forEach((item)=>{
-				linksArray.push(item.link);
+	getNameAndLogo(url){
+		// 1. Clearbit
+		// 2. Copyright
+		// 3. URL
+		let nameAndLogo = {
+			name:'',
+			logo:''
+		}
+		const companyUrl = url;
+		const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyUrl}`;
+		return new Promise((resolve,reject)=>{
+			request(clearbitAPIendpoint,(err,resp,body)=>{
+				console.log(body);
+				const json = JSON.parse(body);
+				if(err){
+					reject(err)
+				}
+			    if(json[0] != undefined){
+			    	const name = (json[0]).name;
+			    	const logo = (json[0]).logo;
+			    	nameAndLogo = {
+			    		name:name,
+			    		logo:logo
+			    	}
+			    	resolve(nameAndLogo);
+				} else {
+					request(companyUrl,(err,resp,body)=>{
+					    //console.log(body)
+					    //console.log(err)
+					    let $ = cheerio.load(body);
+					    let copyright = '';
+
+						$('*').not('script').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+							let text;
+							if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
+								text = $(element).first().contents().filter(function() {
+								    return this.type === 'text';
+								}).text().trim();	
+							} else {
+								text = $(element).text().trim();		// Get text of the element
+							} 
+							// if(!text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>')){ // Immediately reject blocks of texts that include unusual characters (usually signifies that the text contains code, making the text irrelevant)*/
+							// 	texts.push({'text':text});
+							// }
+							if(text.includes('©')){
+								if(text.slice(-1) == '©'){
+									const next = $(element).next().text().trim()
+									const child = $(element).children().first().text().trim()
+									copyright += `${text} ${next} ${child}`
+								} else {
+									copyright += text;
+								}
+							}
+						});
+						copyright = copyright.trim()
+						copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
+						copyright = copyright.replace(/[.]/g,'')	  /* Replace all full stops with empty space */
+						copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
+						copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
+						copyright = copyright.filter(word => !word.includes('-') && !(/^\d{4}$/).test(word)) /* Remove all hyphens and years from within the array */
+						const start = copyright.indexOf('©')+1
+						let end;
+						if(copyright.includes('pte')){
+							end = copyright.indexOf('pte')
+						} else if(copyright.includes('all')){
+							end = copyright.indexOf('all');
+						} else if(copyright.includes('llc')){
+							end = copyright.indexOf('llc')
+						} else if(copyright.includes()){
+
+						} else {
+							end = start+2	/* If no relevant end marker is found, assume that the company has 2 words as its name */
+						}
+						let name = copyright.slice(start,end);
+						name = name.toString().replace(/[,]/g,' ');
+						name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+						name = name.toString().replace(/[,]/g,' ');
+						nameAndLogo = {
+							name:name,
+							logo:''
+						}
+						resolve(nameAndLogo)
+					});
+				}
 			});
-			console.log(linksArray);
-		});
-		// return future.wait();
+		})
 	}
 });
 

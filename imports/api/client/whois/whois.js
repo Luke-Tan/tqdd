@@ -17,7 +17,7 @@
 
 export function getWhoIs(url, render) {
     Meteor.call('whoIs', url, (err,result) => {
-        let whoisdata=result;
+        const whoisdata=result;
         let whoisarray =[];
         let registrantArray = [];
         let adminArray = [];
@@ -26,9 +26,9 @@ export function getWhoIs(url, render) {
         Object.entries(whoisdata).forEach(
             function([key,value]){
                 //Transform camel cased key to normal text
-                let text = key;
-                let camelTextToNorm = text.replace( /([A-Z])/g, " $1" );
-                let name = camelTextToNorm.charAt(0).toUpperCase() + camelTextToNorm.slice(1);
+                const text = key;
+                const camelTextToNorm = text.replace( /([A-Z])/g, " $1" );
+                const name = camelTextToNorm.charAt(0).toUpperCase() + camelTextToNorm.slice(1);
                 if(value.includes('<')){
                     //Remove annoying <<< from the last entry of whois
                     value = value.slice(0,-4);
@@ -52,6 +52,11 @@ export function getWhoIs(url, render) {
                 }
             }
         );
+
+        // const largest = Math.max(registrantArray.length,adminArray.length,techArray.length,otherArray.length);
+        // const carouselHeight = largest*120;
+        // $('.carousel-large').css('height',carouselHeight);
+
         Session.set('registrantData',registrantArray);
         Session.set('adminData',adminArray);
         Session.set('techData',techArray);

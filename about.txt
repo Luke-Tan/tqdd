@@ -1,0 +1,16 @@
+Dependancies for each module:
+
+1) Company Info:
+	-Fall back to Full Contact API when kompass fails (100 free matches per month) (Heavy limiter assuming that kompass does not contain most of the stuff we want)
+2) Logo:
+	-Google Vision API for logo detection (Heavy limiter as there is no other easy way to detect logos)
+	-Knowledge Graph for logo description (100k calls per day) (Essentially a non-limiter)
+3) Social:
+	-None
+4) Testimonials:
+	-None
+5) WhoIs:
+	-None
+6) WordCloud:
+	-Watson Natural Language Understanding (30k matches per month) (Soft limiter as 30k is usually more than enough)
+

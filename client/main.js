@@ -4,10 +4,13 @@ import { Template } from 'meteor/templating';
 import '/imports/ui/client/index.js';
 import './main.html';
 
+/* Internal modules */
 import { getWhoIs } from '/imports/api/client/whois/whois.js';
 import { getWordCloud } from '/imports/api/client/wordcloud/wordcloud.js';
 import { getLogos } from '/imports/api/client/logo/logo.js';
 import { getTestimonials } from '/imports/api/client/testimonials/testimonials.js';
+import { getCompanyInfo } from '/imports/api/client/companyinfo/companyinfo.js'
+import { getSocial } from '/imports/api/client/social/social.js';
 
 import { extractRootDomain , extractHostname, getHostName, getDomain } from '/imports/api/client/all/functions.js';
 
@@ -83,6 +86,8 @@ Template.main.events({
             $("#whois-preloader").removeClass('invisible');
             $("#logos-preloader").removeClass('invisible');
             $("#testimonials-preloader").removeClass('invisible');
+            $("#companyinfo-preloader").removeClass('invisible');
+            $('#social-preloader').removeClass('invisible');
 
             // Temporarily disable wordcloud tabs to prevent issues
             $("#wordcloud-tab").addClass('disabled');
@@ -102,6 +107,48 @@ Template.main.events({
 
 
             $('#preloader').addClass('invisible');
+
+            // getCompanyInfo(domain, ()=>{
+            //     $('#companyinfo-preloader').addClass('invisible');
+            // });
+
+            // const social = {
+            //     name:'ThunderQuote'
+            //     mentions: '22,200',
+            //     shares: { facebook: 1768, pinterest: 0, stumbles: 0 },
+            //     news: { count: 0, articles: [] } 
+            // }
+
+            //Session.set('social',[social]);
+            //$('#social-preloader').addClass('invisible');
+            Meteor.call('getNameAndLogo',domain,(err,result)=>{
+                // Any module that requires the company name should be put in here
+                console.log(result);
+                const name = result.name;
+                const logo = result.logo
+                console.log(name)
+
+                getSocial(fullUrl,domain,name, ()=>{
+                    $('#social-preloader').addClass('invisible');
+                })  
+                getCompanyInfo(domain,name,logo, ()=>{
+                    $('#companyinfo-preloader').addClass('invisible');
+                });
+            })
+
+
+            // const companyInfo = [{
+            //     name:'Efusion Technology',
+            //     year:'2002',
+            //     employees:'0-9 Employees',
+            //     address:'9a Kings Road Singapore',
+            //     logo:'https://logo.clearbit.com/efusiontech.com',
+            //     age:'10',
+            //     phone:'04123041324'
+            // }]
+
+            // Session.set('companyInfo', companyInfo);
+            // $('#companyinfo-preloader').addClass('invisible');
 
             getWordCloud(fullUrl, ()=>{
                 //Make all preloaders invisible
@@ -125,6 +172,7 @@ Template.main.events({
                 $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
                 $('.collapsible').collapsible(); // Initialize the Materialize collapsible
             });
+
         }
     });
   }

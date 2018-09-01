@@ -31,3 +31,4 @@ babel-compiler@=7.0.3
 modules@=0.11.4
 momentjs:moment
 kadira:flow-router
+harrison:papa-parse

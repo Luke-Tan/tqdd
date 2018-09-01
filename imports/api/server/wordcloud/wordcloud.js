@@ -1,6 +1,6 @@
 //Modules
 import './wordcloud.js';
-import { extractRootDomain, extractName } from '../all/functions.js';
+import { getDomain, extractName } from '../all/functions.js';
 
 //npm dependancies
 import NaturalLanguageUnderstandingV1 from 'watson-developer-cloud/natural-language-understanding/v1.js';
@@ -63,7 +63,7 @@ Meteor.methods({
 		let cloudList = [];
 		let chartList = [];
 
-		let rootDomain = extractRootDomain(url);
+		let domain = getDomain(url);
 
 		let params = {
 		  'url': url,

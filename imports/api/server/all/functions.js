@@ -1,3 +1,33 @@
+/* Functions to parse URL */
+export function getName(url) {
+    while(url.indexOf('.') != -1){
+        url = url.substring(0, url.lastIndexOf("."))
+    }
+    return url;
+}
+
+export function getDomain(url) {
+    var hostName = extractHostname(url);
+    var domain = hostName;
+    
+    if (hostName != null) {
+        var parts = hostName.split('.').reverse();
+        
+        if (parts != null && parts.length > 1) {
+            domain = parts[1] + '.' + parts[0];
+                
+            if (hostName.toLowerCase().indexOf('.co.uk') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
+            if (hostName.toLowerCase().indexOf('.com.sg') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
+        }
+    }
+    
+    return domain;
+}
+
 export function extractHostname(url) {
     var hostname;
     //find & remove protocol (http, ftp, etc.) and get hostname
@@ -17,25 +47,30 @@ export function extractHostname(url) {
     return hostname;
 }
 
-export function extractRootDomain(url) {
-    var domain = extractHostname(url),
-        splitArr = domain.split('.'),
-        arrLen = splitArr.length;
+/* Fuzzy match algorithm */
+export function fuzzyMatch(needle, haystack) {
+    if(needle === "" || haystack === "") return true;
 
-    //extracting the root domain here
-    //if there is a subdomain 
-    if (arrLen > 2) {
-        domain = splitArr[arrLen - 2] + '.' + splitArr[arrLen - 1];
-        //check to see if it's using a Country Code Top Level Domain (ccTLD) (i.e. ".me.uk")
-        if (splitArr[arrLen - 2].length == 2 && splitArr[arrLen - 1].length == 2) {
-            //this is using a ccTLD
-            domain = splitArr[arrLen - 3] + '.' + domain;
+    needle = needle.toLowerCase().replace(/ /g, "");
+    haystack = haystack.toLowerCase();
+
+    // All characters in needle must be present in haystack
+    var j = 0; // haystack position
+    for(var i = 0; i < needle.length; i++) {
+        // Go down the haystack until we find the current needle character
+        while(needle[i] !== haystack[j]) {
+            j++;
+
+            // If we reached the end of the haystack, then this is not a match
+            if(j === haystack.length) {
+                return false;
+            }
         }
-    }
-    return domain;
-}
 
-export function extractName(url) {
-    url = url.substring(0, url.lastIndexOf("."))
-    return url;
+        // Here, needle character is same as haystack character
+        //console.log(needle + ":" + i + " === " + haystack + ":" + j);
+    }
+
+    // At this point, we have matched every single letter in the needle without returning false
+    return true;
 }

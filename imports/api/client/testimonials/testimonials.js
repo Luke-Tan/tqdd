@@ -1,5 +1,3 @@
-import { CorrectTestimonialCollection , WrongTestimonialCollection } from '../../both/collections/TestimonialCollection.js';
-
 export function getTestimonials(url, render) {
     Meteor.call('getTestimonials',url,(err,result)=>{
         console.log(result);
