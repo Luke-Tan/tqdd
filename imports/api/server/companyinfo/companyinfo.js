@@ -70,9 +70,10 @@ Meteor.methods({
 			}
 
 			const companyUrl = url;
-			console.log(`Logo ${logo}`)
+			//console.log(`Logo ${logo}`)
 		    companyDetails.name = name;
-		    companyDetails.logo = logo;
+		    companyDetails.logo = `https://logo-core.clearbit.com/${url}`
+		    companyDetails.employees = "0-9 Employees"
 		    const truncatedName = name.split(' ').slice(0,2).join(' '); //Get first 2 words of clearbit name only as that is usually enough to give a wider search
 		    const escapedTruncatedName = truncatedName.replace(/’/g, '%27'); //Replace all apostrophes with escaped chars so that request works
 		    const fuzzyMatchedName = truncatedName.replace(/[^0-9a-zA-Z ]/g,''); //Remove all non aplha-numeric and white space characters so that fuzzy match works
@@ -141,18 +142,21 @@ Meteor.methods({
 				                    companyDetails.address = fullAddress;
 				                    resolve(companyDetails);
 				                } else {
-				                	// companyDetails.employees = "0-9 Employees"
+				                	//companyDetails.employees = "0-9 Employees"
 				                	// resolve(companyDetails);
-				                	resolve(fallBack(companyUrl));
+				                	//resolve(fallBack(companyUrl));
+				                	resolve(companyDetails)
 				                }
 			                });
 			                return false; 
 			            } else {
-			            	resolve(fallBack(companyUrl))
+			            	//resolve(fallBack(companyUrl))
+			            	resolve(companyDetails)
 			            }
 			        })
 			    } else {
-	            	resolve(fallBack(companyUrl))
+	            	//resolve(fallBack(companyUrl))
+	            	resolve(companyDetails)
 			    }
 		    });
 		})
