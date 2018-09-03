@@ -144,19 +144,19 @@ Meteor.methods({
 				                } else {
 				                	//companyDetails.employees = "0-9 Employees"
 				                	// resolve(companyDetails);
-				                	//resolve(fallBack(companyUrl));
-				                	resolve(companyDetails)
+				                	resolve(fallBack(companyUrl));
+				                	//resolve(companyDetails)
 				                }
 			                });
 			                return false; 
 			            } else {
-			            	//resolve(fallBack(companyUrl))
-			            	resolve(companyDetails)
+			            	resolve(fallBack(companyUrl))
+			            	//resolve(companyDetails)
 			            }
 			        })
 			    } else {
-	            	//resolve(fallBack(companyUrl))
-	            	resolve(companyDetails)
+	            	resolve(fallBack(companyUrl))
+	            	//resolve(companyDetails)
 			    }
 		    });
 		})
