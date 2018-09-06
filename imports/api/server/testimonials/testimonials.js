@@ -81,65 +81,65 @@ function isAuthorPreCheck(text){
 let counter = 0;
 /* Testimonial functions */
 async function isAuthor(text,index){
-	// let sentence = new CoreNLP.simple.Sentence(text);
-	// const result = await pipeline.annotate(sentence)
-	//   	.then(sent => {
-	// 	    const entities = sent.nerTags();
-	// 	    const collapsedEntities = countEntities(entities);	//Makes counting easier as coreNLP tags each word within a phrase as an entity itself e.g. Luke Tan => 'PERSON','PERSON'
-	// 	    let people = 0;
-	// 	    let orgs = 0;
-	// 	    collapsedEntities.forEach(entity=>{	// Count the number of relevant entities within the text to determine if it is an author
-	// 	    	if(entity == 'PERSON'){
-	// 	    		people++
-	// 	    	} else if(entity == 'ORGANIZATION'){
-	// 	    		orgs++
-	// 	    	}
-	// 	    });
-	// 	    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
-	// 	    	console.log(text +' PASSED');
-	// 	    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
-	// 	    } else {
-	// 	    	console.error(text+' FAILED')
-	// 	    	return ''
-	// 	    }
+	let sentence = new CoreNLP.simple.Sentence(text);
+	const result = await pipeline.annotate(sentence)
+	  	.then(sent => {
+		    const entities = sent.nerTags();
+		    const collapsedEntities = countEntities(entities);	//Makes counting easier as coreNLP tags each word within a phrase as an entity itself e.g. Luke Tan => 'PERSON','PERSON'
+		    let people = 0;
+		    let orgs = 0;
+		    collapsedEntities.forEach(entity=>{	// Count the number of relevant entities within the text to determine if it is an author
+		    	if(entity == 'PERSON'){
+		    		people++
+		    	} else if(entity == 'ORGANIZATION'){
+		    		orgs++
+		    	}
+		    });
+		    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
+		    	console.log(text +' PASSED');
+		    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
+		    } else {
+		    	console.error(text+' FAILED')
+		    	return ''
+		    }
 	    
-	//   	})
+	  	})
 	//   	.catch(async err => {
 	  		//console.log('FAILED' + 'NLP' + err)	  
-			const document = {
-				content:text,
-				type: 'PLAIN_TEXT',
-			}
-			const result = await client
-			  .analyzeEntities({document: document})
-			  .then(results => {
-			    const entities = results[0].entities;
-			    let people = 0;
-			    let organizations = 0;
+			// const document = {
+			// 	content:text,
+			// 	type: 'PLAIN_TEXT',
+			// }
+			// const result = await client
+			//   .analyzeEntities({document: document})
+			//   .then(results => {
+			//     const entities = results[0].entities;
+			//     let people = 0;
+			//     let organizations = 0;
 
-			    entities.forEach(entity => {
+			//     entities.forEach(entity => {
 			      
-			      if(entity.type == 'PERSON'){
+			//       if(entity.type == 'PERSON'){
 			      	
-			        people++
-			      }
-			      if(entity.type == 'ORGANIZATION'){
-			      	organizations++
-			      }
-			    });
+			//         people++
+			//       }
+			//       if(entity.type == 'ORGANIZATION'){
+			//       	organizations++
+			//       }
+			//     });
 			   	
 
-			   	if(0<people && people <3 || organizations == 1){
-			   		console.log(text);
-			   		return {'text':text,'index':index};
-			   	} else {
-			   		return '';
-			   	}
-			  })
-			  .catch(err => {
-			    console.error('google language ERROR:', err);
-			    return '';
-			});		
+			//    	if(0<people && people <3 || organizations == 1){
+			//    		console.log(text);
+			//    		return {'text':text,'index':index};
+			//    	} else {
+			//    		return '';
+			//    	}
+			//   })
+			//   .catch(err => {
+			//     console.error('google language ERROR:', err);
+			//     return '';
+			// });		
 	    	// console.log(text+' FAILED')
 	    	// return '';
 	 	//});
