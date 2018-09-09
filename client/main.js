@@ -168,10 +168,10 @@ Template.main.events({
                 $('#logos-preloader').addClass('invisible');    
             });
 
-            getTestimonials(fullUrl, ()=>{
-                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-                $('.collapsible').collapsible(); // Initialize the Materialize collapsible
-            });
+            // getTestimonials(fullUrl, ()=>{
+            //     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+            //     $('.collapsible').collapsible(); // Initialize the Materialize collapsible
+            // });
 
         }
     });

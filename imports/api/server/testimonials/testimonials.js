@@ -103,6 +103,9 @@ async function isAuthor(text,index){
 		    	return ''
 		    }
 	    
+	  	}).catch(err =>{
+	  		console.error('stanford NER error', err);
+	  		return '';
 	  	})
 	//   	.catch(async err => {
 	  		//console.log('FAILED' + 'NLP' + err)	  
