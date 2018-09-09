@@ -103,7 +103,14 @@ Meteor.methods({
 			                    /* First we check if its the page we want by comparing the website URL to our own URL */
 
 			                    const companyUrlFromKompass = $('#website').attr('href');
-			                    const companyDomainFromKompass = getDomain(companyUrlFromKompass);
+			                    console.log(companyUrlFromKompass)
+			                    let companyDomainFromKompass;
+			                    if(companyUrlFromKompass != undefined ){
+									companyDomainFromKompass = getDomain(companyUrlFromKompass);
+			                    } else {
+			         				companyDomainFromKompass = '';
+			                    }
+			                    
 			                    const companyDomain = getDomain(companyUrl);
 			                    console.log(companyDomain);
 			                    console.log(companyDomainFromKompass);
