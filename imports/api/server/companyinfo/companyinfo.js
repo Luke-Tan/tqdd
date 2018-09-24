@@ -5,7 +5,6 @@ import cheerio from 'cheerio';
 import nodeUrl from 'url';
 import fetch from 'node-fetch';
 import alexaData from 'alexa-traffic-rank';
-import csv from "csv-query";
 
 /* Fuzzy Match algorithm */
 import { 
