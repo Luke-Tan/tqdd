@@ -6,7 +6,7 @@ import cheerio from 'cheerio'
 // const newsapi = new NewsAPI(Meteor.settings.NEWS_API_KEY);
 
 import {
-	getName,
+	domainToName,
 	getDomain
 } from '../all/functions.js';
 
@@ -17,9 +17,9 @@ Info:
 3. Relevant news features from newsapi
 */
 
-function getMentions(name){
+function getMentions(name,country){
 	return new Promise((resolve,reject)=>{
-		const googleUrl = `https://www.google.com.sg/search?q=%22${name}%22`;
+		const googleUrl = `https://www.google.com.sg/search?q=%22${name}%22 ${country}`;
 		request(googleUrl,(err,resp,body)=>{
 			if(err){
 				reject(err)
@@ -108,40 +108,9 @@ function getShares(url){
 	})
 }
 
-function getNews(name){
+function getNews(name,country){
 	return new Promise((resolve,reject)=>{
-		// newsapi.v2.everything({
-		//   q: name,
-		//   language: 'en',
-		//   category:'business'
-		// }).then(response => {
-		//   console.log(response);
-		//   /*
-		//     {
-		//       status: "ok",
-		//       articles: [...]
-		//     }
-		//   */
-		// });
-		// const NEWS_API_KEY  = Meteor.settings.NEWS_API_KEY
-		// const newsAPIendpoint = `https://newsapi.org/v2/everything?q=${name}&apiKey=${NEWS_API_KEY}`;
-		// //console.log(newsAPIendpoint);
-		// request(newsAPIendpoint,(err,resp,body)=>{
-		// 	if(err){
-		// 		reject(err);
-		// 	}
-		// 	//console.log(body);
-		// 	const json = JSON.parse(body);
-		// 	const count = json.totalResults;
-		// 	const articles = json.articles;
-		// 	let news  = {
-		// 		count:count,
-		// 		articles:articles
-		// 	}
-		// 	resolve(news)
-		// })
-		const query = name;
-		const newsUrl = `https://www.google.com/search?q="${query}"&tbm=nws`
+		const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
 		request(newsUrl, (err,resp,body)=>{
 			if(err){
 				reject(err)
@@ -162,7 +131,49 @@ function getNews(name){
 		                newsLinks.push(url)
 		                const linkContainer = $(e).parent();
 		                const snippet = $(linkContainer).next().next().text();
-		                if(snippet.includes(query)){
+		                if(snippet.includes(name)){
+		                    const title = $(e).text();
+		                    const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
+		                    const publishDetails = $(linkContainer).next().text();
+		                    /*The format is e.g. The New Paper - 27th September 2017. Slice it by the - to seperate into data and publisher*/
+		                    const position = publishDetails.indexOf('-');
+		                    const publisher = publishDetails.slice(0,position-1);
+		                    const date = publishDetails.slice(position+2,publishDetails.length)
+		                    const newsObject = {title:title,date:date,snippet:snippet,publisher:publisher,thumbnail:thumbnail,url:url};
+		                    news.push(newsObject)
+		                }
+		            }
+		        }
+		    })
+		    resolve(news);
+		})
+	})
+}
+
+function getNewsFromDomain(domain){
+	return new Promise((resolve,reject)=>{
+		const newsUrl = `https://www.google.com/search?q="${domain}"&tbm=nws`
+		request(newsUrl, (err,resp,body)=>{
+			if(err){
+				reject(err)
+			}
+		    //console.log(body)
+		    let $ = cheerio.load(body)
+		    let links = $('a')
+		    let newsLinks = []
+		    let news = []
+		    links.each((i,e)=>{
+		        let link = $(e).attr('href')
+		        if(link.includes('/url') && !link.includes('webcache')){
+		        	/*The URL in Google's href contains some weird clutter. Slice it at the correct position to obtain a valid URL*/
+		            const position = link.indexOf('&sa')
+		            const url = link.slice(7,position)
+		            if(newsLinks.indexOf(url) == -1){
+		            	/* For some reason there are more than 1 of the same URL. If the array doesn't already contain it, then add it. */
+		                newsLinks.push(url)
+		                const linkContainer = $(e).parent();
+		                const snippet = $(linkContainer).next().next().text();
+		                if(snippet.toLowerCase().includes(domain)){
 		                    const title = $(e).text();
 		                    const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
 		                    const publishDetails = $(linkContainer).next().text();
@@ -182,6 +193,7 @@ function getNews(name){
 }
 
 function getJobs(name){
+	//https://www.indeed.com.sg/jobs?q=company%3A(thunderquote)
 	return new Promise((resolve,reject)=>{
 		const jobUrl = `https://www.indeed.com.sg/jobs?q=${name}`
 		request(jobUrl,(err,resp,body)=>{
@@ -210,47 +222,40 @@ function getJobs(name){
 	})
 }
 
-function getNameFromGoogle(domain){
-	return new Promise((resolve,reject)=>{
-		const googleUrl = `https://www.google.com.sg/search?q="${domain}"`
-		request(url)
-	})
-}
 
 Meteor.methods({
-	getSocial(url,domain,name){
+	getSocial(url,domain,name,country){
 		return new Promise(async (resolve,reject)=>{
 			let social = {
 				name:'',
 				mentions: '',
 				shares: '',
 				news:'',
-				jobs:''
+				jobs:'',
+				newsFromDomain:''
 			}
 
 			//console.log(json)
-			const domainName = getName(domain)
+			const domainName = domainToName(domain)
 
 			// console.log(name)
-			let mentions = await getMentions(name);
+			let mentions = await getMentions(name,country);
 			let shares = await getShares(url);
-			let news = await getNews(domainName);
+			let news = await getNews(name,country);
+			let newsFromDomain = await getNewsFromDomain(domain);
 			let jobs = await getJobs(name);
 
-			if(jobs.length == 0){ 	//if jobs returns an empty array, it means jobs werent found with the name, try searching with domainname
-				console.error('Using domain for jobs')
-				jobs = await(getJobs(domainName));
-			}
 
-			if(news.length == 0){	//if news returns an empty array, it means news wasnt found with the domainname, try searching with name
-				news = await(getNews(name));
-			}
+			// if(news.length == 0){	//if news returns an empty array, it means news wasnt found with the domainname, try searching with name
+			// 	news = await(getNews(name));
+			// }
 
 			social.name = name;
 			social.mentions = mentions;
 			social.shares = shares;
 			social.news = news;
 			social.jobs = jobs;
+			social.newsFromDomain = newsFromDomain;
 			//console.log(social);
 			resolve(social)
 		})

@@ -4,3 +4,5 @@ export function getName(url,callback){
  		callback(companyName)
 	})
 }
+
+export const ccTLDs = []

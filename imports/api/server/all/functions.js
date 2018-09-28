@@ -1,5 +1,5 @@
 /* Functions to parse URL */
-export function getName(url) {
+export function domainToName(url) {
     while(url.indexOf('.') != -1){
         url = url.substring(0, url.lastIndexOf("."))
     }

@@ -36,7 +36,7 @@ Template.main.onRendered(function(){
 });
 
 Template.main.events({
-  'submit .scrape-url'(event, instance){
+  'submit .scrape-url'(event){
     event.preventDefault();
 
     const enteredUrl = (event.target.text.value).toLowerCase();
@@ -121,19 +121,29 @@ Template.main.events({
 
             //Session.set('social',[social]);
             //$('#social-preloader').addClass('invisible');
-            Meteor.call('getNameAndLogo',fullUrl,domain,(err,result)=>{
-                // Any module that requires the company name should be put in here
-                console.log(result);
-                const name = result.name;
-                const logo = result.logo
-                console.log(name)
 
-                getSocial(fullUrl,domain,name, ()=>{
+            const locale = domain.slice(-2);
+            let country;
+            //This should be updated to contain an exhaustive list of ccTLDs. Note that some ccTLDs NEED to be excluded e.g. no one using .io is actually from the indian ocean
+            if(locale == 'sg'){
+                country = 'Singapore';
+            } else if (locale == 'uk'){
+                country = 'United Kingdom';
+            } else {
+                country = '';
+            }
+
+            Meteor.call('getName',fullUrl,domain,(err,result)=>{
+                // Any module that requires the company name should be put in here
+                const name = result
+
+                getSocial(fullUrl,domain,name,country, ()=>{
+                    console.log(name);
                     $('#social-preloader').addClass('invisible');
                 })  
-                getCompanyInfo(domain,name,logo, ()=>{
-                    $('#companyinfo-preloader').addClass('invisible');
-                });
+                // getCompanyInfo(domain,name ()=>{
+                //     $('#companyinfo-preloader').addClass('invisible');
+                // });
             })
 
 
@@ -150,28 +160,28 @@ Template.main.events({
             // Session.set('companyInfo', companyInfo);
             // $('#companyinfo-preloader').addClass('invisible');
 
-            getWordCloud(fullUrl, ()=>{
-                //Make all preloaders invisible
-                $("#wordcloud-preloader").addClass('invisible');
-                $('#wordchart-preloader').addClass('invisible');
-                $("#wordcloud-tab").removeClass('disabled');
-                $('#wordchart-tab').removeClass('disabled');
+            // getWordCloud(fullUrl, ()=>{
+            //     //Make all preloaders invisible
+            //     $("#wordcloud-preloader").addClass('invisible');
+            //     $('#wordchart-preloader').addClass('invisible');
+            //     $("#wordcloud-tab").removeClass('disabled');
+            //     $('#wordchart-tab').removeClass('disabled');
 
-            });
-
-            getWhoIs(domain, ()=>{
-                //Make all preloaders invisible
-                $("#whois-preloader").addClass('invisible');
-            });
-            getLogos(fullUrl, () =>{
-                //Make all preloaders invisible
-                $('#logos-preloader').addClass('invisible');    
-            });
-
-            // getTestimonials(fullUrl, ()=>{
-            //     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-            //     $('.collapsible').collapsible(); // Initialize the Materialize collapsible
             // });
+
+            // getWhoIs(domain, ()=>{
+            //     //Make all preloaders invisible
+            //     $("#whois-preloader").addClass('invisible');
+            // });
+            // getLogos(fullUrl, () =>{
+            //     //Make all preloaders invisible
+            //     $('#logos-preloader').addClass('invisible');    
+            // });
+
+            getTestimonials(fullUrl, ()=>{
+                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+                $('.collapsible').collapsible(); // Initialize the Materialize collapsible
+            });
 
         }
     });

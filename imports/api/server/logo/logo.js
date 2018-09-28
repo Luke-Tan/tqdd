@@ -118,8 +118,6 @@ function getDescription(params){
 					if(item.result.detailedDescription != undefined && score > blurbThreshold){
 						content += item.result.detailedDescription.articleBody;
 					}
-					//console.log(content);
-					//console.log(typeof(content));
 				});
 				resolve(content);
 			}
@@ -197,7 +195,10 @@ Meteor.methods({
 					    			if(description == ''){
 					    				description = "";
 					    			}
-						    		logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false});
+					    			const checkIfLogoInArray = logo => logo.name === name;
+					    			if(!logosArray.some(checkIfLogoInArray)){
+					    				logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false});
+					    			}
 					    		}
 					    	});
 				    	}

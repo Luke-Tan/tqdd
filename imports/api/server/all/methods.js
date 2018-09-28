@@ -4,8 +4,112 @@ import cheerio from 'cheerio';
 import url from 'url';
 
 import {
-	getName 
+	domainToName 
 } from './functions.js'
+
+function nameFromClearbit(domain){
+	const companyDomain = domain;
+	const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyDomain}`;
+	return new Promise((resolve,reject)=>{
+		request(clearbitAPIendpoint,(err,resp,body)=>{
+			if(err){
+				reject(err)
+			}
+			const json = JSON.parse(body);
+			const result = json[0];
+			if(result != undefined && result.domain == companyDomain){ //Check if the results domain is exactly the same as the domain of the company we are searching. Also checks if there is a result at all.
+	    		const name = result.name;
+				console.log('CLEARBIT '+name)
+	    		resolve(name);
+	    	} else {
+	    		resolve('')
+	    	}
+		})
+	})
+}
+
+function nameFromCopyright(url){
+	const companyUrl = url;
+	return new Promise((resolve,reject)=>{
+		request(companyUrl,(err,resp,body)=>{
+			if(err){
+				reject(err);
+			}
+
+		    let $ = cheerio.load(body);
+		    let copyright = '';
+		    let copyrightMarker = ''
+
+			$('*').not('script').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+				let text;
+				if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
+					text = $(element).first().contents().filter(function() {
+					    return this.type === 'text';
+					}).text().trim();	
+				} else {
+					text = $(element).text().trim();		// Get text of the element
+				} 
+				//Check for possible copyright markers on the website, e.g. copyright, Copyright, (c), (C)
+				const copyrightMarkers = ['©','(c)','(C)','copyright','Copyright'];
+				for (let item of copyrightMarkers) {
+					if(text.includes(item)){
+						copyrightMarker = item
+						if(text.slice(-1) == item){
+							const next = $(element).next().text().trim()
+							const child = $(element).children().first().text().trim()
+							copyright += `${text} ${next} ${child}`
+						} else {
+							copyright += text;
+						}
+						break;
+					}
+				}
+			});
+
+			if(copyright != ''){
+				copyright = copyright.trim()
+				copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
+				copyright = copyright.replace(/[-.,@()$!#&]/g,' ')	  /* Replace all full stops with empty space */
+				copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
+				copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
+				copyright = copyright.filter(word => !(/^\d{4}$/).test(word)) /* Remove all -,@,(,),$,!,#, and years from within the array */
+				const start = copyright.indexOf(copyrightMarker)+1
+
+				let end;
+				const endMarkers = ['pte','all','llc']
+				for(let item of endMarkers){
+					if(copyright.includes(item)){
+						end = copyright.indexOf(item)
+						break
+					}
+				}
+				if(end == undefined){
+					/* If no relevant end marker is found, assume that the company has 2 words as its name */
+					end = start+2;
+				}
+
+				let name = copyright.slice(start,end);
+				name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+				name = name.toString().replace(/[,]/g,' ');
+				if(Boolean(name) != false){
+					console.log('cOPYRIGHT TO NAME '+name)
+					resolve(name)
+				} else {
+					resolve('')								
+				}
+			} else {
+				resolve('')
+			}
+		});
+	})
+}
+
+function nameFromDomain(domain){
+	let name = domainToName(domain)
+	name = name.charAt(0).toUpperCase() + name.slice(1); //Caps the first letter from the name since its a name!
+	return name;
+}
+
 
 Meteor.methods({
 	checkForValidUrl(url){
@@ -54,104 +158,19 @@ Meteor.methods({
 		});
 		return future.wait();
 	},
-	getNameAndLogo(url,domain){
+	getName(url,domain){
 		// 1. Clearbit
 		// 2. Copyright
 		// 3. URL
-		let nameAndLogo = {
-			name:'',
-			logo:''
-		}
-		const companyDomain = domain;
-		const companyUrl = url;
-		const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyDomain}`;
-		return new Promise((resolve,reject)=>{
-			request(clearbitAPIendpoint,(err,resp,body)=>{
-				const json = JSON.parse(body);
-				if(err){
-					reject(err)
-				}
-			    if(json[0] != undefined){
-			    	const name = (json[0]).name;
-			    	const logo = (json[0]).logo;
-			    	nameAndLogo = {
-			    		name:name,
-			    		logo:logo
-			    	}
-			    	resolve(nameAndLogo);
-				} else {
-					request(companyUrl,(err,resp,body)=>{
-						if(err){
-							reject(err);
-						}
-					    //console.log(body)
-					    //console.log(err)
-					    console.log(body)
-					    let $ = cheerio.load(body);
-					    let copyright = '';
-
-						$('*').not('script').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
-							let text;
-							if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
-								text = $(element).first().contents().filter(function() {
-								    return this.type === 'text';
-								}).text().trim();	
-							} else {
-								text = $(element).text().trim();		// Get text of the element
-							} 
-							// if(!text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>')){ // Immediately reject blocks of texts that include unusual characters (usually signifies that the text contains code, making the text irrelevant)*/
-							// 	texts.push({'text':text});
-							// }
-							if(text.includes('©')){
-								if(text.slice(-1) == '©'){
-									const next = $(element).next().text().trim()
-									const child = $(element).children().first().text().trim()
-									copyright += `${text} ${next} ${child}`
-								} else {
-									copyright += text;
-								}
-							}
-						});
-
-						if(copyright != ''){
-							copyright = copyright.trim()
-							copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
-							copyright = copyright.replace(/[.]/g,'')	  /* Replace all full stops with empty space */
-							copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
-							copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
-							copyright = copyright.filter(word => !word.includes('-') && !(/^\d{4}$/).test(word)) /* Remove all hyphens and years from within the array */
-							const start = copyright.indexOf('©')+1
-							let end;
-							if(copyright.includes('pte')){
-								end = copyright.indexOf('pte')
-							} else if(copyright.includes('all')){
-								end = copyright.indexOf('all');
-							} else if(copyright.includes('llc')){
-								end = copyright.indexOf('llc')
-							} else if(copyright.includes()){
-
-							} else {
-								end = start+2	/* If no relevant end marker is found, assume that the company has 2 words as its name */
-							}
-							let name = copyright.slice(start,end);
-							name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
-							name = name.toString().replace(/[,]/g,' ');
-							nameAndLogo = {
-								name:name,
-								logo:''
-							}
-							resolve(nameAndLogo)
-						} else {
-							name = getName(companyDomain)
-							nameAndLogo = {
-								name:name,
-								logo:''
-							}
-							resolve(nameAndLogo)
-						}
-					});
-				}
-			});
+		return new Promise(async (resolve,reject)=>{
+			let name = await nameFromClearbit(domain);
+			if(name == ''){
+				name = await nameFromCopyright(url)
+			}
+			if(name == ''){
+				name = await nameFromDomain(domain);
+			}
+			resolve(name);
 		})
 	}
 });

@@ -201,7 +201,7 @@ export const testimonialData =
 `I would really like to say a big THANK YOU to team Web Design Singapore (WDS)! When I decided to revamp The Cookies Factory’s website, I called up many different vendors, but WDS was the only one to get back to me quickly and give me a detailed description as per my request.`,
 `From planning to executing my website, WDS showed a tremendous amount of patience and professionalism. They truly contributed great ideas on improving my website and the final product I received garnered many positive feedbacks from my clients. They are definitely a top-notch web design company!`,
 `The Chiropractic Association (Singapore) thanks you and Ripplewerkz for creating our website.   We also want to thank you for your advice, during the consultation phase, to make this website simple to use and manage. We had a good experience working with you and learnt a lot about the “back end” details of managing an website. On behalf of TCA(S), I wish Ripplewerkz and you, success.`,
-``,
+`I must commend that SoCool provides efficient customer service (eg they reply via WhatsApp almost instantly) and excellent workmanship (eg provides valuable advice based on the status of the aircons and being attentive to cleanliness of the surrounding floor area after cleaning the aircon).`,
 ``,
 ``,
 ``,

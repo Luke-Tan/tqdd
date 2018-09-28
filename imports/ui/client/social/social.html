@@ -83,12 +83,71 @@
                               <div class="col s10 push-s1">
                                 <div class="row valign-wrapper">
                                   <div class="col s2">
-                                    <a href={{news.url}}>
+                                    <a href={{news.url}} target="_blank">
                                       <img src={{news.thumbnail}}>
                                     </a>
                                   </div>
                                   <div class="col s10 left-align">
-                                    <a href={{news.url}}>
+                                    <a href={{news.url}} target="_blank">
+                                      <h5>
+                                        {{news.title}}  
+                                      </h5>
+                                    </a>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col s6 left-align">
+                                    <h6>
+                                      <strong>{{news.publisher}}</strong>
+                                    </h6>
+                                  </div>
+                                  <div class="col s6 right-align">
+                                    <h6>
+                                      <strong>{{news.date}}</strong>
+                                    </h6>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col s12 left-align">
+                                    {{news.snippet}}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {{/each}}
+                      {{else}}
+                        <h5 class="red-text">
+                          No news found
+                        </h5>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="row collection-row">
+                <div class="col s12">
+                  <div class="row">
+                    <div class="col s12">
+                      <h4 class="bold blue-text lighten-3">News Mentions Using Domain</h4>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col s10 push-s1">
+                      {{#if socialObj.newsFromDomain}}
+                        {{#each news in socialObj.newsFromDomain}}
+                          <div class="card-panel">
+                            <div class="row collection-row">
+                              <div class="col s10 push-s1">
+                                <div class="row valign-wrapper">
+                                  <div class="col s2">
+                                    <a href={{news.url}} target="_blank">
+                                      <img src={{news.thumbnail}}>
+                                    </a>
+                                  </div>
+                                  <div class="col s10 left-align">
+                                    <a href={{news.url}} target="_blank">
                                       <h5>
                                         {{news.title}}  
                                       </h5>

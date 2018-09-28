@@ -56,7 +56,7 @@ function fallBack(url){
 }
 
 Meteor.methods({
-	getCompanyInfo(url,name,logo){
+	getCompanyInfo(url,name){
 		return new Promise((resolve,reject)=>{
 			let companyDetails = {
 				name:'',

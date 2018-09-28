@@ -189,13 +189,38 @@ function classifyTestimonials(link){
 					} else {
 						text = $(element).text().trim();		// Get text of the element
 					} 
-					if(!text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>')){ // Immediately reject blocks of texts that include unusual characters (usually signifies that the text contains code, making the text irrelevant)*/
-						texts.push({'text':text});
+					/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
+					if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>')){ 
+						texts.push(text);
 					}
 				});
 				
 				let authorPromises = [];
 				//console.log(texts);
+				let testimonialText = '';
+				let id = 0;
+				console.log(texts);
+				texts.forEach((item,index)=>{
+					const text = item;
+					const lowtext = text.toLowerCase();
+					if(isTestimonial(text)){
+						testimonialText += text;
+					} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && 
+						!lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+						let author = text;
+						id++
+						let testimonial = {
+							'id':'testimonial_'+String(id),
+							'text':testimonialText,
+							'author':author
+						}
+						testimonialText = '';
+						testimonials.push(testimonial);
+					}
+				})
+				resolve(testimonials);
+
+				/*
 				texts.forEach((item,index)=>{
 					let text = item.text.toLowerCase();		//Set to lower case to allow for easier manipulation
 					if(isTestimonial(text)){
@@ -206,6 +231,7 @@ function classifyTestimonials(link){
 						authorPromises.push(isAuthor(text,index));	// Necessary to use promises as CoreNLP returns a promise
 					}
 				});
+
 
 				Promise.all(authorPromises).then(results=>{	 // Wait for all of the author promises to resolve 
 					results.forEach((item)=>{
@@ -239,6 +265,7 @@ function classifyTestimonials(link){
 				}).catch(err => {
 				    console.error('ERROR:', err);
 				});
+				*/
 			}
 		});
 	});
@@ -268,7 +295,7 @@ Meteor.methods({
 					// Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
 					// Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
 					// Reject links that are already inside the array in case there are multiple links pointing to the same url
-					if(hrefLowerCase.includes('testimonial') && !(hrefLowerCase.includes('#')) && !testimonialLinks.includes(link)){
+					if(hrefLowerCase.includes('testimonial') || hrefLowerCase.includes('review') && !(hrefLowerCase.includes('#')) && !testimonialLinks.includes(link)){
 						testimonialLinks.push(link);
 					}
 				}
