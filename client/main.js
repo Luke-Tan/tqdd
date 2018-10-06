@@ -33,6 +33,13 @@ Template.main.onRendered(function(){
         fullWidth: true,
         indicators: true
     });
+    $('input.autocomplete').autocomplete({
+      data: {
+        "Apple": null,
+        "Microsoft": null,
+        "Google": 'https://placehold.it/250x250'
+      },
+    });
 });
 
 Template.main.events({
@@ -141,7 +148,7 @@ Template.main.events({
                     console.log(name);
                     $('#social-preloader').addClass('invisible');
                 })  
-                // getCompanyInfo(domain,name ()=>{
+                // getCompanyInfo(domain,name,()=>{
                 //     $('#companyinfo-preloader').addClass('invisible');
                 // });
             })

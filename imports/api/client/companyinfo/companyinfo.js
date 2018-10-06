@@ -1,5 +1,5 @@
-export function getCompanyInfo(url,name,logo,render){	
-	Meteor.call('getCompanyInfo',url,name,logo,(err,result)=>{
+export function getCompanyInfo(domain,name,render){	
+	Meteor.call('getCompanyInfo',domain,name,(err,result)=>{
 		const companyInfo = [result];
 		Session.set('companyInfo', companyInfo);
         if(render !== undefined){
