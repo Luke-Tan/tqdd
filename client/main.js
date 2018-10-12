@@ -33,13 +33,9 @@ Template.main.onRendered(function(){
         fullWidth: true,
         indicators: true
     });
-    $('input.autocomplete').autocomplete({
-      data: {
-        "Apple": null,
-        "Microsoft": null,
-        "Google": 'https://placehold.it/250x250'
-      },
-    });
+    // $('input.autocomplete').autocomplete({
+    //     Session.get('autocompleteData')
+    // });
 });
 
 Template.main.events({
@@ -148,9 +144,9 @@ Template.main.events({
                     console.log(name);
                     $('#social-preloader').addClass('invisible');
                 })  
-                // getCompanyInfo(domain,name,()=>{
-                //     $('#companyinfo-preloader').addClass('invisible');
-                // });
+                getCompanyInfo(domain,name,()=>{
+                    $('#companyinfo-preloader').addClass('invisible');
+                });
             })
 
 
@@ -167,23 +163,23 @@ Template.main.events({
             // Session.set('companyInfo', companyInfo);
             // $('#companyinfo-preloader').addClass('invisible');
 
-            // getWordCloud(fullUrl, ()=>{
-            //     //Make all preloaders invisible
-            //     $("#wordcloud-preloader").addClass('invisible');
-            //     $('#wordchart-preloader').addClass('invisible');
-            //     $("#wordcloud-tab").removeClass('disabled');
-            //     $('#wordchart-tab').removeClass('disabled');
+            getWordCloud(fullUrl, ()=>{
+                //Make all preloaders invisible
+                $("#wordcloud-preloader").addClass('invisible');
+                $('#wordchart-preloader').addClass('invisible');
+                $("#wordcloud-tab").removeClass('disabled');
+                $('#wordchart-tab').removeClass('disabled');
 
-            // });
+            });
 
-            // getWhoIs(domain, ()=>{
-            //     //Make all preloaders invisible
-            //     $("#whois-preloader").addClass('invisible');
-            // });
-            // getLogos(fullUrl, () =>{
-            //     //Make all preloaders invisible
-            //     $('#logos-preloader').addClass('invisible');    
-            // });
+            getWhoIs(domain, ()=>{
+                //Make all preloaders invisible
+                $("#whois-preloader").addClass('invisible');
+            });
+            getLogos(fullUrl, () =>{
+                //Make all preloaders invisible
+                $('#logos-preloader').addClass('invisible');    
+            });
 
             getTestimonials(fullUrl, ()=>{
                 $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible

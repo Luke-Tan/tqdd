@@ -40,7 +40,7 @@ function nameFromCopyright(url){
 		    let copyright = '';
 		    let copyrightMarker = ''
 
-			$('*').not('script').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+			$('*').not('script style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
 				let text;
 				if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
 					text = $(element).first().contents().filter(function() {
