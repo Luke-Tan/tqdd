@@ -11,3 +11,7 @@ export function getTestimonials(url, render) {
 export function updateTestimonials(text,type){
 	Meteor.call('updateTestimonials',text,type);
 }
+
+export function testScores(text,type,scores){
+	Meteor.call('testScores',text,type,scores)
+}

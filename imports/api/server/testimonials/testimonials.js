@@ -10,7 +10,7 @@ import language from '@google-cloud/language';
 import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
 
 /*Internal modules*/
-import { CorrectTestimonialCollection , WrongTestimonialCollection } from '../../both/collections/TestimonialCollection.js';
+import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositives, falsePositives } from '../../both/collections/TestimonialCollection.js';
 
 /* Instantiate coreNLP server */
 const props = new Properties({
@@ -199,7 +199,7 @@ function classifyTestimonials(link){
 				//console.log(texts);
 				let testimonialText = '';
 				let id = 0;
-				console.log(texts);
+				//console.log(texts);
 				texts.forEach((item,index)=>{
 					const text = item;
 					const lowtext = text.toLowerCase();
@@ -209,10 +209,13 @@ function classifyTestimonials(link){
 						!lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
 						let author = text;
 						id++
+
+						let scores = bayes.getClassifications(testimonialText);
 						let testimonial = {
 							'id':'testimonial_'+String(id),
 							'text':testimonialText,
-							'author':author
+							'author':author,
+							'scores':scores
 						}
 						testimonialText = '';
 						testimonials.push(testimonial);
@@ -344,6 +347,42 @@ Meteor.methods({
 				if(existsInCorrectCollection){
 					CorrectTestimonialCollection.remove({
 						text: text,
+					});
+				}
+				break
+		}
+	},
+	testScores(text,type,scores){
+		const existsInTruePositives = Boolean(truePositives.findOne({text: text}));
+		const existsInFalsePositives   = Boolean(falsePositives.findOne({text: text}));
+		console.log(existsInTruePositives);
+		console.log(existsInFalsePositives);
+		switch(type){
+			case 'correct':
+				if(!existsInTruePositives ){
+					truePositives.insert({
+						text: text,
+						scores:scores
+					});
+				}
+				if(existsInFalsePositives){
+					falsePositives.remove({
+						text: text,
+						scores:scores
+					});				
+				}
+				break
+			case 'wrong':
+				if(!existsInFalsePositives){
+					falsePositives.insert({
+						text: text,
+						scores:scores
+					});
+				}
+				if(existsInTruePositives){
+					truePositives.remove({
+						text: text,
+						scores:scores
 					});
 				}
 				break
