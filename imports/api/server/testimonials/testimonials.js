@@ -387,6 +387,50 @@ Meteor.methods({
 				}
 				break
 		}
+	},
+	getData(){
+		const truePositivesCollection = truePositives.find({}).fetch();
+		const falsePositivesCollection = falsePositives.find({}).fetch();
+
+		const truePositivesLength = truePositivesCollection.length;
+		const falsePositivesLength = falsePositives.length;
+
+
+		let truePositivesMaxFactor = 0;
+		let falsePositivesMaxFactor = 0;
+
+		let truePositivesTotalFactor;
+		let falsePositivesTotalFactor;
+
+		truePositivesCollection.forEach(doc=>{
+			let scores = doc.scores;
+			let testimonialScore = scores[0].value;
+			let plainScore = scores[1].value;
+			const factor = testimonialScore/plainScore
+			if(factor>truePositivesMaxFactor){
+				truePositivesMaxFactor = factor;
+			}
+			truePositivesTotalFactor += factor;
+		})
+
+		falsePositivesCollection.forEach(doc=>{
+			let scores = doc.scores;
+			let testimonialScore = scores[0].value;
+			let plainScore = scores[1].value;
+			const factor = testimonialScore/plainScore
+			if(factor>falsePositivesMaxFactor){
+				falsePositivesMaxFactor = factor;
+			}
+			falsePositivesTotalFactor += factor;
+		})		
+
+		const truePositivesAverageFactor = truePositivesTotalFactor/truePositivesLength;
+		const falsePositivesAverageFactor = falsePositivesTotalFactor/falsePositivesLength;
+
+		console.log(falsePositivesCollection);
+		console.log(falsePositivesMaxFactor);
+		console.log(truePositivesCollection); 
+		console.log(truePositivesMaxFactor);
 	}
 });
 
