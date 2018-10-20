@@ -427,9 +427,9 @@ Meteor.methods({
 		const truePositivesAverageFactor = truePositivesTotalFactor/truePositivesLength;
 		const falsePositivesAverageFactor = falsePositivesTotalFactor/falsePositivesLength;
 
-		console.log(falsePositivesCollection);
+		console.log(falsePositivesAverageFactor);
 		console.log(falsePositivesMaxFactor);
-		console.log(truePositivesCollection); 
+		console.log(truePositivesAverageFactor); 
 		console.log(truePositivesMaxFactor);
 	}
 });
