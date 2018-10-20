@@ -399,8 +399,12 @@ Meteor.methods({
 		let truePositivesMaxFactor = 0;
 		let falsePositivesMaxFactor = 0;
 
-		let truePositivesTotalFactor;
-		let falsePositivesTotalFactor;
+		let truePositivesMinFactor = 0;
+		let falsePositivesMinFactor = 0;
+
+		let truePositivesTotalFactor = 0;
+		let falsePositivesTotalFactor = 0;
+
 
 		truePositivesCollection.forEach(doc=>{
 			let scores = doc.scores;
@@ -409,6 +413,9 @@ Meteor.methods({
 			const factor = testimonialScore/plainScore
 			if(factor>truePositivesMaxFactor){
 				truePositivesMaxFactor = factor;
+			}
+			if(factor<truePositivesMaxFactor){
+				truePositivesMinFactor = factor;
 			}
 			truePositivesTotalFactor += factor;
 		})
@@ -421,16 +428,21 @@ Meteor.methods({
 			if(factor>falsePositivesMaxFactor){
 				falsePositivesMaxFactor = factor;
 			}
+			if(factor>falsePositivesMaxFactor){
+				falsePositivesMinFactor = factor;
+			}
 			falsePositivesTotalFactor += factor;
 		})		
 
 		const truePositivesAverageFactor = truePositivesTotalFactor/truePositivesLength;
 		const falsePositivesAverageFactor = falsePositivesTotalFactor/falsePositivesLength;
 
-		console.log(falsePositivesAverageFactor);
-		console.log(falsePositivesMaxFactor);
-		console.log(truePositivesAverageFactor); 
-		console.log(truePositivesMaxFactor);
+		console.log(`False positive avg: ${falsePositivesAverageFactor}`);
+		console.log(`False positive maximum: ${falsePositivesMaxFactor}`);
+		console.log(`False positive minimum: ${falsePositivesMinFactor}`);
+		console.log(`True positive avg: ${truePositivesAverageFactor}`); 
+		console.log(`True positive max: ${truePositivesMaxFactor}`);
+		console.log(`True Positive minimum: ${truePositivesMinFactor}`);
 	}
 });
 
