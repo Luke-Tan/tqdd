@@ -136,18 +136,18 @@ Template.main.events({
                 country = '';
             }
 
-            // Meteor.call('getName',fullUrl,domain,(err,result)=>{
-            //     // Any module that requires the company name should be put in here
-            //     const name = result
+            Meteor.call('getName',fullUrl,domain,(err,result)=>{
+                // Any module that requires the company name should be put in here
+                const name = result
 
-            //     getSocial(fullUrl,domain,name,country, ()=>{
-            //         console.log(name);
-            //         $('#social-preloader').addClass('invisible');
-            //     })  
-            //     // getCompanyInfo(domain,name,()=>{
-            //     //     $('#companyinfo-preloader').addClass('invisible');
-            //     // });
-            // })
+                getSocial(fullUrl,domain,name,country, ()=>{
+                    console.log(name);
+                    $('#social-preloader').addClass('invisible');
+                })  
+                // getCompanyInfo(domain,name,()=>{
+                //     $('#companyinfo-preloader').addClass('invisible');
+                // });
+            })
 
 
             // const companyInfo = [{
@@ -181,10 +181,20 @@ Template.main.events({
             //     $('#logos-preloader').addClass('invisible');    
             // });
 
-            // getTestimonials(fullUrl, ()=>{
-            //     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-            //     $('.collapsible').collapsible(); // Initialize the Materialize collapsible
-            // });
+            getTestimonials(fullUrl, ()=>{
+                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+                $("#testimonialsNoFilter-preloader").addClass('invisible'); // Make all preloaders invisible
+                $('.collapsible').collapsible({
+                    accordion:false,
+                }); // Initialize the Materialize collapsible
+
+                let length = Session.get('testimonialsNoFilter').length;
+                setTimeout(function(){                
+                    for(let i=0;i<length;i++){
+                    $('.collapsible').collapsible('open', i);
+                }}, 500);
+
+            });
 
             Meteor.call('getData');
         }

@@ -31,7 +31,7 @@ const client = new language.LanguageServiceClient({
 });
 
 let bayes = new natural.BayesClassifier();
-//var bayes = new natural.bayesClassifier();
+//var bayes = new natural.BayesClassifier();
 
 testimonialData.forEach((testimonial)=>{
 	bayes.addDocument(testimonial,'testimonial');
@@ -179,6 +179,7 @@ function classifyTestimonials(link){
 				let $ = cheerio.load(body);
 				let texts = [];
 				let testimonials = [];
+				let testimonialsNoFilter = [];
 
 				$('*').not('script style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
 					let text;
@@ -217,11 +218,22 @@ function classifyTestimonials(link){
 							'author':author,
 							'scores':scores
 						}
+						const classifications = bayes.getClassifications(testimonialText);
+						const testimonialScore = classifications[0].value;
+						const plainScore = classifications[1].value;
+						const factor = testimonialScore/plainScore;
 						testimonialText = '';
-						testimonials.push(testimonial);
+						if(factor > 100){
+							testimonials.push(testimonial);
+						}
+						testimonialsNoFilter.push(testimonial);
 					}
 				})
-				resolve(testimonials);
+				//resolve([testimonials,testimonialsNoFilter]);
+				resolve({
+					testimonials:testimonials,
+					testimonialsNoFilter:testimonialsNoFilter,
+				})
 
 				/*
 				texts.forEach((item,index)=>{
@@ -310,15 +322,34 @@ Meteor.methods({
 
 		let testimonialLinks = future.wait();
 		let testimonialsUnflattened = await getTestimonials(testimonialLinks);
-		const testimonials = testimonialsUnflattened.flatten();
+		console.log(testimonialsUnflattened);
+		//const testimonials = testimonialsUnflattened.flatten();
+		let testimonials = []
+		let testimonialsNoFilter = []
+		testimonialsUnflattened.forEach(obj=>{
+			testimonials.push(obj.testimonials);
+			testimonialsNoFilter.push(obj.testimonialsNoFilter);
+		})
+
+		testimonials = testimonials.flatten();
+		testimonialsNoFilter = testimonialsNoFilter.flatten();
+		
 		let testimonialsNoDupes = [];
 		testimonials.forEach(testimonial=>{ 		//Remove all duplicates within the array (whether it be same testimonial or same author)
 			if(!testimonialsNoDupes.some(element => element.text === testimonial.text || element.author === testimonial.author)) {
 			  testimonialsNoDupes.push(testimonial);
 			}
 		});
-		console.log(counter);
-		return testimonialsNoDupes;
+		let testimonialsNoFilterNoDupes = [];
+		testimonialsNoFilter.forEach(testimonial=>{ 		//Remove all duplicates within the array (whether it be same testimonial or same author)
+			if(!testimonialsNoFilterNoDupes.some(element => element.text === testimonial.text || element.author === testimonial.author)) {
+			  testimonialsNoFilterNoDupes.push(testimonial);
+			}
+		});
+
+		console.log(testimonialsNoDupes);
+		console.log(testimonialsNoFilterNoDupes);
+		return {testimonials:testimonialsNoDupes,testimonialsNoFilter:testimonialsNoFilterNoDupes};
 	},
 	updateTestimonials(text,type){
 		const existsInCorrectCollection = Boolean(CorrectTestimonialCollection.findOne({text: text}));
@@ -399,8 +430,8 @@ Meteor.methods({
 		let truePositivesMaxFactor = 0;
 		let falsePositivesMaxFactor = 0;
 
-		let truePositivesMinFactor = 0;
-		let falsePositivesMinFactor = 0;
+		let truePositivesMinFactor = 999999999999999999999999999999999999;
+		let falsePositivesMinFactor = 99999999999999999999999999999999999;
 
 		let truePositivesTotalFactor = 0;
 		let falsePositivesTotalFactor = 0;
@@ -428,7 +459,7 @@ Meteor.methods({
 			if(factor>falsePositivesMaxFactor){
 				falsePositivesMaxFactor = factor;
 			}
-			if(factor>falsePositivesMaxFactor){
+			if(factor<falsePositivesMaxFactor){
 				falsePositivesMinFactor = factor;
 			}
 			falsePositivesTotalFactor += factor;
