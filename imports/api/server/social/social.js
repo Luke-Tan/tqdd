@@ -29,6 +29,9 @@ function getMentions(name,country){
 			/* Mentions will be in the format "About XXX results, so we need to extract the number only"`*/
 			mentions = mentions.replace('About ','');
 			mentions = mentions.replace(' results','');
+			if(Boolean(mentions) == false){
+				console.log(body);
+			}
 			resolve(mentions);
 		})
 	})

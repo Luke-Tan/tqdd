@@ -76,7 +76,7 @@ function nameFromCopyright(url){
 				const start = copyright.indexOf(copyrightMarker)+1
 
 				let end;
-				const endMarkers = ['pte','all','llc']
+				const endMarkers = ['pte','all','llc','|']
 				for(let item of endMarkers){
 					if(copyright.includes(item)){
 						end = copyright.indexOf(item)
