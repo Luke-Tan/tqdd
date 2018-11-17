@@ -84,7 +84,7 @@ export function getKompassInfo(name,domain){
 
 		                    resolve(companyDetails);
 		                } else {
-		                	resolve({}});
+		                	resolve({});
 		                }
 					})
 					return false;
