@@ -12,12 +12,12 @@ import {
 	getDomain,
 } from '../all/functions.js'
 
-import getJobstreetInfo from 'companyProfiles/jobstreet.js';
-import getKompassInfo from 'companyProfiles/kompass.js';
-import getRecommendSgInfo from 'companyProfiles/recommendsg.js';
-import getYeluSgInfo from 'companyProfiles/yelusg.js';
+import getJobstreetInfo from '/imports/api/server/companyinfo/companyProfiles/jobstreet.js';
+import getKompassInfo from '/imports/api/server/companyinfo/companyProfiles/kompass.js';
+import getRecommendSgInfo from '/imports/api/server/companyinfo/companyProfiles/recommendsg.js';
+import getYeluSgInfo from '/imports/api/server/companyinfo/companyProfiles/yelusg.js';
 
-import getFullContactInfo from 'companyProfiles/fullcontact.js'; 
+import getFullContactInfo from '/imports/api/server/companyinfo/companyProfiles/fullcontact.js'; 
 /*
 Workflow:
 1) Get company name from clearbit API using URL
