@@ -91,7 +91,7 @@ export function getKompassInfo(name,domain){
 				}
 			})
 			if(noKompassProfileFound == true){
-				resolve({}});
+				resolve({});
 			}
 		})
 	})

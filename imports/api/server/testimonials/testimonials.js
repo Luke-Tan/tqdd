@@ -38,8 +38,6 @@ testimonialData.forEach((testimonial)=>{
 	//bayes.addDocument(testimonial,'testimonial');
 });
 
-CorrectTestimonialCollection
-
 plainData.forEach((doc)=>{
 	bayes.addDocument(doc,'plain');
 	//bayes.addDocument(doc,'plain');
