@@ -318,13 +318,11 @@ Meteor.methods({
 				}
 			});
 
-			console.log(testimonialLinks);
 			future['return'](testimonialLinks);
 		});
 
 		let testimonialLinks = future.wait();
 		let testimonialsUnflattened = await getTestimonials(testimonialLinks);
-		console.log(testimonialsUnflattened);
 		//const testimonials = testimonialsUnflattened.flatten();
 		let testimonials = []
 		let testimonialsNoFilter = []
@@ -349,15 +347,11 @@ Meteor.methods({
 			}
 		});
 
-		console.log(testimonialsNoDupes);
-		console.log(testimonialsNoFilterNoDupes);
 		return {testimonials:testimonialsNoDupes,testimonialsNoFilter:testimonialsNoFilterNoDupes};
 	},
 	updateTestimonials(text,type){
 		const existsInCorrectCollection = Boolean(CorrectTestimonialCollection.findOne({text: text}));
 		const existsInWrongCollection   = Boolean(WrongTestimonialCollection.findOne({text: text}));
-		console.log(existsInWrongCollection)
-		console.log(existsInCorrectCollection)
 		switch(type){
 			case 'correct':
 				if(!existsInCorrectCollection ){
@@ -388,8 +382,6 @@ Meteor.methods({
 	testScores(text,type,scores){
 		const existsInTruePositives = Boolean(truePositives.findOne({text: text}));
 		const existsInFalsePositives   = Boolean(falsePositives.findOne({text: text}));
-		console.log(existsInTruePositives);
-		console.log(existsInFalsePositives);
 		switch(type){
 			case 'correct':
 				if(!existsInTruePositives ){
@@ -420,62 +412,6 @@ Meteor.methods({
 				}
 				break
 		}
-	},
-	getData(){
-		const truePositivesCollection = truePositives.find({}).fetch();
-		const falsePositivesCollection = falsePositives.find({}).fetch();
-
-		const truePositivesLength = truePositivesCollection.length;
-		const falsePositivesLength = falsePositives.length;
-
-
-		let truePositivesMaxFactor = 0;
-		let falsePositivesMaxFactor = 0;
-
-		let truePositivesMinFactor = 999999999999999999999999999999999999;
-		let falsePositivesMinFactor = 99999999999999999999999999999999999;
-
-		let truePositivesTotalFactor = 0;
-		let falsePositivesTotalFactor = 0;
-
-
-		truePositivesCollection.forEach(doc=>{
-			let scores = doc.scores;
-			let testimonialScore = scores[0].value;
-			let plainScore = scores[1].value;
-			const factor = testimonialScore/plainScore
-			if(factor>truePositivesMaxFactor){
-				truePositivesMaxFactor = factor;
-			}
-			if(factor<truePositivesMaxFactor){
-				truePositivesMinFactor = factor;
-			}
-			truePositivesTotalFactor += factor;
-		})
-
-		falsePositivesCollection.forEach(doc=>{
-			let scores = doc.scores;
-			let testimonialScore = scores[0].value;
-			let plainScore = scores[1].value;
-			const factor = testimonialScore/plainScore
-			if(factor>falsePositivesMaxFactor){
-				falsePositivesMaxFactor = factor;
-			}
-			if(factor<falsePositivesMaxFactor){
-				falsePositivesMinFactor = factor;
-			}
-			falsePositivesTotalFactor += factor;
-		})		
-
-		const truePositivesAverageFactor = truePositivesTotalFactor/truePositivesLength;
-		const falsePositivesAverageFactor = falsePositivesTotalFactor/falsePositivesLength;
-
-		console.log(`False positive avg: ${falsePositivesAverageFactor}`);
-		console.log(`False positive maximum: ${falsePositivesMaxFactor}`);
-		console.log(`False positive minimum: ${falsePositivesMinFactor}`);
-		console.log(`True positive avg: ${truePositivesAverageFactor}`); 
-		console.log(`True positive max: ${truePositivesMaxFactor}`);
-		console.log(`True Positive minimum: ${truePositivesMinFactor}`);
 	}
 });
 
