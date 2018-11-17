@@ -1,6 +1,6 @@
 import request from 'request';
 import cheerio from 'cheerio';
-import url from 'nodeurl';
+import nodeurl from 'url';
 
 export function getJobstreetInfo(name){
     const googleQuery = `https://www.google.com.sg/search?q="jobstreet"+${name}`;

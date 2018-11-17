@@ -1,6 +1,6 @@
 import request from 'request';
 import cheerio from 'cheerio';
-import nodeurl from 'nodeurl';
+import nodeurl from 'url';
 
 export function getYeluSgInfo(name){
 	const googleQuery = `https://www.google.com.sg/search?q=site%3Ayelu.sg+${name}`

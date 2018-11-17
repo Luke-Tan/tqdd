@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-export function fullContactInfo(url){
+export function getFullContactInfo(url){
 	return new Promise((resolve,reject)=>{
 		fetch('https://api.fullcontact.com/v3/company.enrich',{
 			method: 'POST',
