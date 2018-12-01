@@ -144,9 +144,9 @@ Template.main.events({
                     console.log(name);
                     $('#social-preloader').addClass('invisible');
                 })  
-                // getCompanyInfo(domain,name,()=>{
-                //     $('#companyinfo-preloader').addClass('invisible');
-                // });
+                getCompanyInfo(domain,name,()=>{
+                    $('#companyinfo-preloader').addClass('invisible');
+                });
             })
 
 
@@ -176,6 +176,7 @@ Template.main.events({
             //     //Make all preloaders invisible
             //     $("#whois-preloader").addClass('invisible');
             // });
+
             // getLogos(fullUrl, () =>{
             //     //Make all preloaders invisible
             //     $('#logos-preloader').addClass('invisible');    
@@ -196,7 +197,7 @@ Template.main.events({
 
             });
 
-            Meteor.call('getData');
+            //Meteor.call('getData');
         }
     });
   }

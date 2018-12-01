@@ -2,97 +2,83 @@ import request from 'request';
 import cheerio from 'cheerio';
 import nodeUrl from 'url';
 
-export function getKompassInfo(name,domain){
-	const googleQuery = `https://www.google.com.sg/search?q="kompass"+${name}`;
+import { 
+	getDomain,
+} from '../../all/functions.js'
+
+export default function getKompassInfo(url,domain){
 	return new Promise((resolve,reject)=>{
-		request(googleQuery,(err,resp,body)=>{
-			if(err){
-				reject(err);
-			}
-			let $ = cheerio.load(body);
-			let links = $('a');
-			let noKompassProfileFound = true;
-			links.each((i,e)=>{
-				let link = $(e).attr('href');
-				if(link.includes('kompass.com/c')){
-					noKompassProfileFound = false;
-					console.log(link);
-					const pos = link.indexOf('&sa');
-					let url = link.slice(7,pos);
+		if(url != undefined){
+			request(url,(err,resp,body)=>{
+	            let $ = cheerio.load(body)
 
-					request(url,(err,resp,body)=>{
-	                    let $ = cheerio.load(body)
+	            const companyUrlFromKompass = $('#website').attr('href');
+	            let companyDomainFromKompass;
 
-	                    const companyUrlFromKompass = $('#website').attr('href');
-	                    let companyDomainFromKompass;
+	            if(Boolean(companyUrlFromKompass) != false){
+					companyDomainFromKompass = getDomain(companyUrlFromKompass);
+	            } else {
+	 				companyDomainFromKompass = '';
+	            }
+	            
+	            const companyDomain = domain;
 
-	                    if(Boolean(companyUrlFromKompass) != false){
-							companyDomainFromKompass = getDomain(companyUrlFromKompass);
-	                    } else {
-	         				companyDomainFromKompass = '';
+
+	            let phone = '';
+	            let address = '';
+	            let age = '';
+	            let year = '';
+	            let employees = ''
+
+	            if(companyDomainFromKompass == companyDomain){
+	            	/* Year that Company was founded */
+	                const td = $('td')
+	                $(td).each((index,element)=>{
+	                    const text = $(element).text().trim()
+	                    if(text.length == 4 && !isNaN(text)){
+	                    	const yearFounded = text.toString()
+	                        const date = new Date();
+	                        const currentYear = date.getFullYear();
+	                        year = yearFounded;
+	                        age = currentYear-yearFounded
 	                    }
-	                    
-	                    const companyDomain = domain;
-	                    console.log(companyDomain);
-	                    console.log(companyDomainFromKompass);
+	                })
 
-	                    let phone = '';
-	                    let address = '';
-	                    let age = '';
-	                    let year = '';
-	                    let employees = ''
+	                /* Number of employees */
+	                $('.number').each((index,element)=>{
+	                	const text = $(element).text().trim()
+	                	if(text.includes('Employees')){
+	                		employees = text
+	                	}
+	                })
 
-	                    if(companyDomainFromKompass == companyDomain){
-	                    	/* Year that Company was founded */
-		                    const td = $('td')
-		                    $(td).each((index,element)=>{
-		                        const text = $(element).text().trim()
-		                        if(text.length == 4 && !isNaN(text)){
-		                            year = text
-		                            const date = new Date();
-		                            const year = date.getFullYear();
-		                            age = year-text.toString();
-		                        }
-		                    })
+	                /* Company Phone Number */
+				    const phoneNumberParent = $('.phoneCompany').first();
+				    const phoneNumber = $(phoneNumberParent).children('input').first().attr('value');
+				  	phone = phoneNumber;
 
-		                    /* Number of employees */
-		                    $('.number').each((index,element)=>{
-		                    	const text = $(element).text().trim()
-		                    	if(text.includes('Employees')){
-		                    		employees = text
-		                    	}
-		                    })
+				  	/* Company Address */
+	                const address = $('span[itemprop=streetAddress]').text().trim();
+	                const country  = $('span[itemprop=addressCountry]').text().trim();
+	                const fullAddress = `${address}, ${country}`
 
-		                    /* Company Phone Number */
-						    const phoneNumberParent = $('.phoneCompany').first();
-						    const phoneNumber = $(phoneNumberParent).children('input').first().attr('value');
-						  	phone = phoneNumber;
+	                //address = fullAddress;
 
-						  	/* Company Address */
-		                    const address = $('span[itemprop=streetAddress]').text().trim();
-		                    const country  = $('span[itemprop=addressCountry]').text().trim();
-		                    const fullAddress = `${address}, ${country}`
+	                const companyDetails = {
+	                	age:age,
+	                	phone:phone,
+	                	address:fullAddress,
+	                	employees:employees,
+	                	year:year
+	                }
 
-		                    address = fullAddress;
-
-		                    const companyDetails = {
-		                    	age:age,
-		                    	phone:phone,
-		                    	address:address,
-		                    	employees:employees,
-		                    }
-
-		                    resolve(companyDetails);
-		                } else {
-		                	resolve({});
-		                }
-					})
-					return false;
-				}
+	                resolve(companyDetails);
+	            } else {
+	            	resolve({});
+	            }
 			})
-			if(noKompassProfileFound == true){
-				resolve({});
-			}
-		})
+		} else {
+			resolve({})
+		}
 	})
 }

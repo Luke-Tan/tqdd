@@ -13,8 +13,8 @@ import multerS3 from 'multer-s3';
 
 
 /* Global constants */
-const logoThreshold = 0.3;		// Confidence threshold to accept/reject a logo from Google Vision
-const blurbThreshold = 30;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
+const logoThreshold = 0.4;		// Confidence threshold to accept/reject a logo from Google Vision
+const blurbThreshold = 40;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
 /* Instantiate Google Vision Client */
 const client = new vision.ImageAnnotatorClient({
@@ -171,44 +171,51 @@ Meteor.methods({
 				    		logos.forEach(logo =>{
 
 				    			if(logo.score>logoThreshold){
-					    			const boundingPoly = logo.boundingPoly.vertices;
-					    			const topLeft = boundingPoly[0];
-					    			const bottomRight = boundingPoly[2];
-					    			const x1 = topLeft.x;
-					    			const y1 = topLeft.y;
-					    			const x2 = bottomRight.x;
-					    			const y2 = bottomRight.y;
+					    			// const boundingPoly = logo.boundingPoly.vertices;
+					    			// const topLeft = boundingPoly[0];
+					    			// const bottomRight = boundingPoly[2];
+					    			// const x1 = topLeft.x;
+					    			// const y1 = topLeft.y;
+					    			// const x2 = bottomRight.x;
+					    			// const y2 = bottomRight.y;
 
-					    			const height = y2-y1;
-					    			const width = x2-x1;
+					    			// const height = y2-y1;
+					    			// const width = x2-x1;
+					    			let name = logo.description;
+									let params = {
+									  query: name,
+									  types: 'Organization',
+									  limit: 1
+									}
+									let description = getDescription(params).await();
+									logoSet.push({'name':name,'description':description});
+									// Jimp.read(image).then(async img=>{
+									//     const croppedImage = img.crop(x1-100,y1-100,width+200,height+200).getBufferAsync("image/png")
+									//     console.log(await croppedImage)
 
-									Jimp.read(image).then(async img=>{
-									    const croppedImage = img.crop(x1-100,y1-100,width+200,height+200).getBufferAsync("image/png")
-									    console.log(await croppedImage)
+					    // 				let name = logo.description;
+									// 	let params = {
+									// 	  query: name,
+									// 	  types: 'Organization',
+									// 	  limit: 1
+									// 	}
+									// 	let description = getDescription(params).await();
+						   //  			// let keyword = logo.description.replace(/ /g,'');
+						   //  			// let logoInfo = Scrape.wikipedia(keyword, 'en');
+						   //  			// let description = striptags(logoInfo.summary);
+						   //  			if(description == ''){
+						   //  				description = "";
+						   //  			}
 
-					    				let name = logo.description;
-										let params = {
-										  query: name,
-										  types: 'Organization',
-										  limit: 1
-										}
-										let description = getDescription(params).await();
-						    			// let keyword = logo.description.replace(/ /g,'');
-						    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
-						    			// let description = striptags(logoInfo.summary);
-						    			if(description == ''){
-						    				description = "";
-						    			}
+									//     //Upload croppedImage to S3, get URL => url
+									//     //logosArray.push({'name':name,'src':S3url, 'description':description,multilogo:false})
 
-									    //Upload croppedImage to S3, get URL => url
-									    //logosArray.push({'name':name,'src':S3url, 'description':description,multilogo:false})
-
-						    			//console.log(logo.description+logo.score);
-						    			logoSet.push({'name':name,'description':description});
+						   //  			//console.log(logo.description+logo.score);
+						   //  			logoSet.push({'name':name,'description':description});
 									    
-									}).catch(err=>{
-									    console.log(err)
-									});
+									// }).catch(err=>{
+									//     console.log(err)
+									// });
 
 
 				    			}

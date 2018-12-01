@@ -40,7 +40,7 @@ function nameFromCopyright(url){
 		    let copyright = '';
 		    let copyrightMarker = ''
 
-			$('*').not('script style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+			$('*').not('script,style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
 				let text;
 				if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
 					text = $(element).first().contents().filter(function() {
@@ -50,7 +50,7 @@ function nameFromCopyright(url){
 					text = $(element).text().trim();		// Get text of the element
 				} 
 				//Check for possible copyright markers on the website, e.g. copyright, Copyright, (c), (C)
-				const copyrightMarkers = ['©','(c)','(C)','copyright','Copyright'];
+				const copyrightMarkers = ['©','copyright','Copyright','(c)','(C)'];
 				for (let item of copyrightMarkers) {
 					if(text.includes(item)){
 						copyrightMarker = item

@@ -7,7 +7,7 @@ export function getCompanyInfo(domain,name,render){
             render();
         }
 	})
-	Meteor.call('getWebsiteInfo',url,name,(err,result)=>{
+	Meteor.call('getWebsiteInfo',domain,name,(err,result)=>{
 		const websiteInfo = result;
 		Session.set('websiteInfo',websiteInfo);
 	})	

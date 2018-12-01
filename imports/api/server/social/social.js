@@ -19,21 +19,22 @@ Info:
 
 function getMentions(name,country){
 	return new Promise((resolve,reject)=>{
-		const googleUrl = `https://www.google.com.sg/search?q=%22${name}%22 ${country}`;
-		request(googleUrl,(err,resp,body)=>{
-			if(err){
-				reject(err)
-			}
-			let $ = cheerio.load(body);
-			let mentions = $('#resultStats').text();
-			/* Mentions will be in the format "About XXX results, so we need to extract the number only"`*/
-			mentions = mentions.replace('About ','');
-			mentions = mentions.replace(' results','');
-			if(Boolean(mentions) == false){
-				console.log(body);
-			}
-			resolve(mentions);
-		})
+		// const googleUrl = `https://www.google.com.sg/search?q=%22${name}%22 ${country}`;
+		// request(googleUrl,(err,resp,body)=>{
+		// 	if(err){
+		// 		reject(err)
+		// 	}
+		// 	let $ = cheerio.load(body);
+		// 	let mentions = $('#resultStats').text();
+		// 	 //Mentions will be in the format "About XXX results, so we need to extract the number only"`
+		// 	mentions = mentions.replace('About ','');
+		// 	mentions = mentions.replace(' results','');
+		// 	if(Boolean(mentions) == false){
+		// 		console.log(body);
+		// 	}
+		// 	resolve(mentions);
+		// })
+		resolve('9000')
 	})
 }
 
@@ -111,9 +112,10 @@ function getShares(url){
 	})
 }
 
-function getNews(name,country){
+function getNews(name,country,domain){
 	return new Promise((resolve,reject)=>{
-		const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
+		//const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
+		const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
 		request(newsUrl, (err,resp,body)=>{
 			if(err){
 				reject(err)
@@ -244,8 +246,8 @@ Meteor.methods({
 			// console.log(name)
 			let mentions = await getMentions(name,country);
 			let shares = await getShares(url);
-			let news = await getNews(name,country);
-			let newsFromDomain = await getNewsFromDomain(domain);
+			let news = await getNews(name,country,domain);
+			//let newsFromDomain = await getNewsFromDomain(domain);
 			let jobs = await getJobs(name);
 
 
@@ -258,7 +260,7 @@ Meteor.methods({
 			social.shares = shares;
 			social.news = news;
 			social.jobs = jobs;
-			social.newsFromDomain = newsFromDomain;
+			//social.newsFromDomain = newsFromDomain;
 			//console.log(social);
 			resolve(social)
 		})

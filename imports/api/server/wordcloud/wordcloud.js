@@ -60,13 +60,12 @@ function analyze(params) {
 
 Meteor.methods({
 	async scrapeText(url){
-		let cloudList = [];
-		let chartList = [];
-
 		let domain = getDomain(url);
 
+		console.log(domain);
+		console.log(url);
 		let params = {
-		  'url': url,
+		  'url': domain,
 		  'features': {
 		    'keywords': {
 		    	'sentiment': false,
