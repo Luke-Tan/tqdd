@@ -1,6 +1,7 @@
 /* Npm modules */
 import request from 'request'
 import cheerio from 'cheerio'
+import Parser from 'rss-parser'
 //import NewsAPI from 'newsapi'
 
 // const newsapi = new NewsAPI(Meteor.settings.NEWS_API_KEY);
@@ -113,45 +114,93 @@ function getShares(url){
 }
 
 function getNews(name,country,domain){
-	return new Promise((resolve,reject)=>{
+	return new Promise(async (resolve,reject)=>{
 		//const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
-		const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
-		request(newsUrl, (err,resp,body)=>{
-			if(err){
-				reject(err)
+		//const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
+		console.log('HELLO!!!!!');
+		const googleRSSfeed = `https://news.google.com/news?q="${name}"&output=rss`
+		let parser = new Parser();
+		let feed = await parser.parseURL(googleRSSfeed);
+		let news = []
+		feed.items.forEach((item,index) => {
+			if(index != 0){
+			    //console.log(item)
+			    const title = item.title;
+			    let $ = cheerio.load(item.content);
+			    let thumbnail = ''
+			    try{
+				    thumbnail = $('img').attr('src');
+				    thumbnail = thumbnail.slice(2,thumbnail.length)
+			    }
+			    catch(error){
+			    	thumbnail = ''
+			    	console.error('No thumbnail found!')
+			    }
+			    function getAllIndexes(arr, val) {
+			        var indexes = [], i;
+			        for(i = 0; i < arr.length; i++)
+			            if (arr[i] === val)
+			                indexes.push(i);
+			        return indexes;
+			    }
+			    const pos = getAllIndexes(title,'-').slice(-1)[0]
+			    const mainTitle = title.slice(0,pos-1);
+			    const publisher = title.slice(pos+2,title.length);
+			    console.log(mainTitle);
+			    console.log(publisher);
+			    let snippet = item.contentSnippet.replace(mainTitle,'')
+			    snippet = snippet.replace(publisher,'');
+			    snippet = snippet.replace(/&nbsp;/g,'');
+			    const newsObject = {
+			        title:item.title,
+			        snippet:snippet,
+			        date:item.pubDate,
+			        publisher:publisher,
+			        url:item.link,
+			        thumbnail:thumbnail
+			    }
+			    console.log(newsObject);
+			    news.push(newsObject)
 			}
-		    //console.log(body)
-		    let $ = cheerio.load(body)
-		    let links = $('a')
-		    let newsLinks = []
-		    let news = []
-		    links.each((i,e)=>{
-		        let link = $(e).attr('href')
-		        if(link.includes('/url') && !link.includes('webcache')){
-		        	/*The URL in Google's href contains some weird clutter. Slice it at the correct position to obtain a valid URL*/
-		            const position = link.indexOf('&sa')
-		            const url = link.slice(7,position)
-		            if(newsLinks.indexOf(url) == -1){
-		            	/* For some reason there are more than 1 of the same URL. If the array doesn't already contain it, then add it. */
-		                newsLinks.push(url)
-		                const linkContainer = $(e).parent();
-		                const snippet = $(linkContainer).next().next().text();
-		                if(snippet.includes(name)){
-		                    const title = $(e).text();
-		                    const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
-		                    const publishDetails = $(linkContainer).next().text();
-		                    /*The format is e.g. The New Paper - 27th September 2017. Slice it by the - to seperate into data and publisher*/
-		                    const position = publishDetails.indexOf('-');
-		                    const publisher = publishDetails.slice(0,position-1);
-		                    const date = publishDetails.slice(position+2,publishDetails.length)
-		                    const newsObject = {title:title,date:date,snippet:snippet,publisher:publisher,thumbnail:thumbnail,url:url};
-		                    news.push(newsObject)
-		                }
-		            }
-		        }
-		    })
-		    resolve(news);
-		})
+		});
+		resolve(news)
+		 
+		// request(newsUrl, (err,resp,body)=>{
+		// 	if(err){
+		// 		reject(err)
+		// 	}
+		//     //console.log(body)
+		//     let $ = cheerio.load(body)
+		//     let links = $('a')
+		//     let newsLinks = []
+		//     let news = []
+		//     links.each((i,e)=>{
+		//         let link = $(e).attr('href')
+		//         if(link.includes('/url') && !link.includes('webcache')){
+		//         	/*The URL in Google's href contains some weird clutter. Slice it at the correct position to obtain a valid URL*/
+		//             const position = link.indexOf('&sa')
+		//             const url = link.slice(7,position)
+		//             if(newsLinks.indexOf(url) == -1){
+		//             	/* For some reason there are more than 1 of the same URL. If the array doesn't already contain it, then add it. */
+		//                 newsLinks.push(url)
+		//                 const linkContainer = $(e).parent();
+		//                 const snippet = $(linkContainer).next().next().text();
+		//                 if(snippet.includes(name)){
+		//                     const title = $(e).text();
+		//                     const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
+		//                     const publishDetails = $(linkContainer).next().text();
+		//                     /*The format is e.g. The New Paper - 27th September 2017. Slice it by the - to seperate into data and publisher*/
+		//                     const position = publishDetails.indexOf('-');
+		//                     const publisher = publishDetails.slice(0,position-1);
+		//                     const date = publishDetails.slice(position+2,publishDetails.length)
+		//                     const newsObject = {title:title,date:date,snippet:snippet,publisher:publisher,thumbnail:thumbnail,url:url};
+		//                     news.push(newsObject)
+		//                 }
+		//             }
+		//         }
+		//     })
+		//     resolve(news);
+		// })
 	})
 }
 

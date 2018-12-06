@@ -82,18 +82,28 @@
                             <div class="row collection-row">
                               <div class="col s10 push-s1">
                                 <div class="row valign-wrapper">
-                                  <div class="col s2">
-                                    <a href={{news.url}} target="_blank">
-                                      <img src={{news.thumbnail}}>
-                                    </a>
-                                  </div>
-                                  <div class="col s10 left-align">
-                                    <a href={{news.url}} target="_blank">
-                                      <h5>
-                                        {{news.title}}  
-                                      </h5>
-                                    </a>
-                                  </div>
+                                  {{#if news.thumbnail}}
+                                    <div class="col s2">
+                                      <a href={{news.url}} target="_blank">
+                                        <img src={{news.thumbnail}}>
+                                      </a>
+                                    </div>
+                                    <div class="col s10 left-align">
+                                      <a href={{news.url}} target="_blank">
+                                        <h5>
+                                          {{news.title}}  
+                                        </h5>
+                                      </a>
+                                    </div>
+                                  {{else}}
+                                    <div class="col s12 left-align">
+                                      <a href={{news.url}} target="_blank">
+                                        <h5>
+                                          {{news.title}}  
+                                        </h5>
+                                      </a>
+                                    </div>
+                                  {{/if}}
                                 </div>
                                 <div class="row">
                                   <div class="col s6 left-align">

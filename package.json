@@ -35,6 +35,7 @@
     "phantomjs": "^2.1.7",
     "rename-keys": "^2.0.1",
     "request-promise": "^4.2.2",
+    "rss-parser": "^3.5.4",
     "scroll-into-view": "^1.9.3",
     "sentiment": "^4.2.0",
     "simplecrawler": "^1.1.6",
