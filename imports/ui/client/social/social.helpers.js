@@ -7,21 +7,21 @@ Template.social_template.helpers({
         return Session.get('social');
     },
     isMention(type){
-    	if(type == 'mention'){
+    	if(type == 'Mention'){
     		return true
     	} else {
     		return false
     	}
     },
     isMinorSubject(type){
-    	if(type == 'minor subject'){
+    	if(type == 'Minor subject'){
     		return true
     	} else {
     		return false
     	}
     },
     isMajorSubject(type){
-    	if(type == 'major subject'){
+    	if(type == 'Major subject'){
     		return true
     	} else {
     		return false

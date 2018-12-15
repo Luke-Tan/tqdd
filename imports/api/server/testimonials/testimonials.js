@@ -158,6 +158,26 @@ function isTestimonial(text){
 	}
 }
 
+function testimonialFirstPersonFilter(text){
+	const firstPersonMarkers = ['us','we','our','you']
+	const thirdPersonMarkers = ['they','them','their','I']
+	let firstPersonScore = 0;
+	let thirdPersonScore = 0;
+	let textArray = text.split(' ');
+	textArray.forEach((word)=>{
+		if(firstPersonMarkers.includes(word)){
+			firstPersonScore++
+		} else if(thirdPersonMarkers.includes(word)){
+			thirdPersonScore++
+		}
+	})
+	if(thirdPersonScore >= firstPersonScore){
+		return true;
+	} else {
+		return false;
+	}
+}
+
 async function getTestimonials(links){
 	let promises = [];
 	links.forEach(link=>{
@@ -222,11 +242,15 @@ function classifyTestimonials(link){
 						const testimonialScore = classifications[0].value;
 						const plainScore = classifications[1].value;
 						const factor = testimonialScore/plainScore;
-						testimonialText = '';
 						if(factor > 100){
-							testimonials.push(testimonial);
+							testimonialsNoFilter.push(testimonial);
+							if(testimonialFirstPersonFilter(testimonialText)){
+								testimonials.push(testimonial)
+							}
 						}
-						testimonialsNoFilter.push(testimonial);
+						testimonialText = '';
+
+					//	testimonialsNoFilter.push(testimonial);
 					}
 				})
 				//resolve([testimonials,testimonialsNoFilter]);

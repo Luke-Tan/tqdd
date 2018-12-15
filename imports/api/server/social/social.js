@@ -144,7 +144,7 @@ function getNews(name,country,domain){
 		let parser = new Parser();
 
 		let feed = await parser.parseURL(googleRSSfeed);
-		console.log(feed.items);
+		//console.log(feed.items);
 
 		let promises = []
 
@@ -185,8 +185,9 @@ function getNews(name,country,domain){
 				const articleText = new Promise((resolve,reject)=>{
 					request(url,(err,resp,body)=>{
 						if(err){
-							reject(err)
+							reject('')
 						}
+						//let text;
 						const text = unfluff(body).text;
 						if(text.includes(name)){
 				    		let type;
@@ -195,11 +196,11 @@ function getNews(name,country,domain){
 					    	const count = (text.match(regexp) || []).length;
 					    	//console.log(count);
 					    	if(count <= 3){
-					    		type='mention'
+					    		type='Mention'
 					    	} else if(count >= 4 && count <= 7){
-					    		type='minor subject'
+					    		type='Minor subject'
 					    	} else if(count >= 8){
-					    		type = 'major subject'
+					    		type = 'Major subject'
 					    	}
 
 						    const newsObject = {
@@ -223,9 +224,17 @@ function getNews(name,country,domain){
 		    	promises.push(articleText);
 			}
 		});
-		const news = await Promise.all(promises)
-		console.log(news);
-		resolve(news);
+		// const news = await Promise.all(promises).then(values => { 
+		// 	  return(values);
+		// 	})
+		// 	.catch(error => { 
+		// 	  console.error(error)
+		// 	});
+
+		const news = await Promise.all(promises.map(p => p.catch(e => e)));
+		const validNews = news.filter(result => !(result == ''));
+		console.log(validNews);
+		resolve(validNews);
 		 
 		// request(newsUrl, (err,resp,body)=>{
 		// 	if(err){
