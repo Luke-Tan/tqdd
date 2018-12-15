@@ -2,6 +2,8 @@
 import request from 'request'
 import cheerio from 'cheerio'
 import Parser from 'rss-parser'
+import unfluff from 'unfluff'
+import Future from 'fibers/future';
 //import NewsAPI from 'newsapi'
 
 // const newsapi = new NewsAPI(Meteor.settings.NEWS_API_KEY);
@@ -17,6 +19,26 @@ Info:
 2. Social shares
 3. Relevant news features from newsapi
 */
+
+function getAllIndexes(arr, val) {
+    var indexes = [], i;
+    for(i = 0; i < arr.length; i++)
+        if (arr[i] === val)
+            indexes.push(i);
+    return indexes;
+}
+
+function validNews(url,name){
+	return new Promise((resolve,reject)=>{
+		request(url,(err,resp,body)=>{
+			if(err){
+				reject(err)
+			}
+			const text = unfluff(body).text;
+			
+		})
+	})
+}
 
 function getMentions(name,country){
 	return new Promise((resolve,reject)=>{
@@ -117,14 +139,18 @@ function getNews(name,country,domain){
 	return new Promise(async (resolve,reject)=>{
 		//const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
 		//const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
-		console.log('HELLO!!!!!');
-		const googleRSSfeed = `https://news.google.com/news?q="${name}"&output=rss`
+		//let googleRSSfeed = `https://news.google.com/news?q="${name}" ${country}&output=rss`
+		let googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
 		let parser = new Parser();
+
 		let feed = await parser.parseURL(googleRSSfeed);
-		let news = []
-		feed.items.forEach((item,index) => {
-			if(index != 0){
-			    //console.log(item)
+		console.log(feed.items);
+
+		let promises = []
+
+		feed.items.forEach(async (item,index) => {
+		    //console.log(item)
+		    if(index < 11){
 			    const title = item.title;
 			    let $ = cheerio.load(item.content);
 			    let thumbnail = ''
@@ -134,36 +160,72 @@ function getNews(name,country,domain){
 			    }
 			    catch(error){
 			    	thumbnail = ''
-			    	console.error('No thumbnail found!')
+			    	//console.error('No thumbnail found!')
 			    }
-			    function getAllIndexes(arr, val) {
-			        var indexes = [], i;
-			        for(i = 0; i < arr.length; i++)
-			            if (arr[i] === val)
-			                indexes.push(i);
-			        return indexes;
-			    }
+
 			    const pos = getAllIndexes(title,'-').slice(-1)[0]
 			    const mainTitle = title.slice(0,pos-1);
 			    const publisher = title.slice(pos+2,title.length);
-			    console.log(mainTitle);
-			    console.log(publisher);
+			    const url = item.link
 			    let snippet = item.contentSnippet.replace(mainTitle,'')
 			    snippet = snippet.replace(publisher,'');
 			    snippet = snippet.replace(/&nbsp;/g,'');
-			    const newsObject = {
-			        title:item.title,
-			        snippet:snippet,
-			        date:item.pubDate,
-			        publisher:publisher,
-			        url:item.link,
-			        thumbnail:thumbnail
-			    }
-			    console.log(newsObject);
-			    news.push(newsObject)
+
+			 //    console.time();
+			 //    const article = Scrape.website(item.link);
+			 //    console.timeEnd();
+			 //    console.log(item.link)
+
+				// data = unfluff(my_html_data);
+				// console.log(data.text);
+
+			 //    const articleText = article.text;
+		    	// const articleText = grabText(url)
+
+				const articleText = new Promise((resolve,reject)=>{
+					request(url,(err,resp,body)=>{
+						if(err){
+							reject(err)
+						}
+						const text = unfluff(body).text;
+						if(text.includes(name)){
+				    		let type;
+				    		const regexp = new RegExp(name,'g');
+
+					    	const count = (text.match(regexp) || []).length;
+					    	//console.log(count);
+					    	if(count <= 3){
+					    		type='mention'
+					    	} else if(count >= 4 && count <= 7){
+					    		type='minor subject'
+					    	} else if(count >= 8){
+					    		type = 'major subject'
+					    	}
+
+						    const newsObject = {
+						        title:item.title,
+						        snippet:snippet,
+						        date:item.pubDate,
+						        publisher:publisher,
+						        url:url,
+						        thumbnail:thumbnail,
+						        count:count,
+						        type:type
+						    }
+
+						    resolve(newsObject)
+						} else {
+							reject('');
+						}
+					})
+				})
+
+		    	promises.push(articleText);
 			}
 		});
-		resolve(news)
+		const news = await Promise.all(promises)
+		console.log(news);
+		resolve(news);
 		 
 		// request(newsUrl, (err,resp,body)=>{
 		// 	if(err){

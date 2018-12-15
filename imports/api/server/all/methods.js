@@ -7,6 +7,11 @@ import {
 	domainToName 
 } from './functions.js'
 
+
+function insert(str, index, value) {
+    return str.substr(0, index) + value + str.substr(index);
+}
+
 function nameFromClearbit(domain){
 	const companyDomain = domain;
 	const clearbitAPIendpoint = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${companyDomain}`;
@@ -54,7 +59,7 @@ function nameFromCopyright(url){
 				for (let item of copyrightMarkers) {
 					if(text.includes(item)){
 						copyrightMarker = item
-						if(text.slice(-1) == item){
+						if(text.slice(-1) == copyrightMarker){
 							const next = $(element).next().text().trim()
 							const child = $(element).children().first().text().trim()
 							copyright += `${text} ${next} ${child}`
@@ -67,12 +72,54 @@ function nameFromCopyright(url){
 			});
 
 			if(copyright != ''){
+				console.log(copyright);
 				copyright = copyright.trim()
 				copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
-				copyright = copyright.replace(/[-.,@()$!#&]/g,' ')	  /* Replace all full stops with empty space */
+				console.log(copyright);
+				copyright = copyright.replace(/(\[.*?\]|\(.*?\)) */g, ""); /* Replace everything contained within brackets (usually contains bullshit)*/ 
+				copyright = copyright.replace(/[-.,@$!#&]/g,' ')	  /* Replace all full stops with empty space */
+				console.log(copyright);
 				copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
+
+				/* Add spaces behind and in front of copyrightMarker to isolate it */
+				let copyrightIndex = copyright.indexOf(copyrightMarker);	
+				const startIndex = copyrightIndex 
+				const endIndex = copyrightIndex+(copyrightMarker.length-1)
+				console.log(copyrightIndex);
+				if(copyright[endIndex+1] != ' '){
+					copyright = insert(copyright, copyrightIndex+1, ' ')
+				}
+
+				if(copyright[startIndex-1] != ' ' && copyright[startIndex-1] != undefined){
+					copyright = insert(copyright, copyrightIndex-1, ' ')
+				}
+
+				console.log(copyright);
+
 				copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
 				copyright = copyright.filter(word => !(/^\d{4}$/).test(word)) /* Remove all -,@,(,),$,!,#, and years from within the array */
+
+				console.log(copyright)
+
+				/* Hard code in certain words that MAY be found immediately after the copyright marker that is clearly not 
+				the name of the company. We remove this. First noticed in cases like '© 2018 by Clean Lab Pte Ltd' 
+				Additional copyright markers may be found, e.g. © Copyright 2018. In this case, it makes sense to remove everything
+				that was NOT used as the initial copyright marker
+				*/
+				const vetoWords = ['by','of','©','copyright','Copyright']
+
+				if(vetoWords.includes(copyright[copyright.indexOf(copyrightMarker)+1])){
+					copyright.splice(copyright.indexOf(copyrightMarker)+1, 1);
+				}
+
+				copyright = copyright.filter(word => word != '')
+
+				/* Add the . back to .com because we removed it previously when removing all fullstops...*/
+				if(copyright.indexOf('com') != -1){
+					copyright.splice(copyright.indexOf('com'), 0, '.'); 
+				}
+				console.log(copyright);
+
 				const start = copyright.indexOf(copyrightMarker)+1
 
 				let end;
@@ -92,7 +139,7 @@ function nameFromCopyright(url){
 				name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
 				name = name.toString().replace(/[,]/g,' ');
 				if(Boolean(name) != false){
-					console.log('cOPYRIGHT TO NAME '+name)
+					console.log('COPYRIGHT TO NAME '+name)
 					resolve(name)
 				} else {
 					resolve('')								
