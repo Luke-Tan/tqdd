@@ -1,12 +1,14 @@
 /* CSS declarations go here */
 body {
-	background-image: url("singapore-skyline.jpg");
+	/*background-image: url("singapore-skyline.jpg");*/
+	background-image: url("Rainbow_Feather.jpg");
 
     /* Set a specific height */
 
     /* Create the parallax scrolling effect */
     background-attachment: fixed;
     background-position: center;
+    /*background-position: 0px 150px;*/
     background-repeat: no-repeat;
     background-size: cover;
 }

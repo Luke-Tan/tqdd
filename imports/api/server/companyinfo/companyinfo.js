@@ -16,20 +16,12 @@ import getJobstreetInfo from '/imports/api/server/companyinfo/companyProfiles/jo
 import getKompassInfo from '/imports/api/server/companyinfo/companyProfiles/kompass.js';
 import getRecommendSgInfo from '/imports/api/server/companyinfo/companyProfiles/recommendsg.js';
 import getYeluSgInfo from '/imports/api/server/companyinfo/companyProfiles/yelusg.js';
+import getZipleafInfo from '/imports/api/server/companyinfo/companyProfiles/zipleaf.js';
+import getTuugoInfo from '/imports/api/server/companyinfo/companyProfiles/tuugo.js';
 
+/* This is a paid api that generally has most of the info we are looking for, 100 free calls per month, can fall back
+to this for cases where we have no info, or if we need to demo or smth */
 import getFullContactInfo from '/imports/api/server/companyinfo/companyProfiles/fullcontact.js'; 
-/*
-Workflow:
-1) Get company name from clearbit API using URL
-2) Enter company name into Kompass search bar with request and cheerio
-3) Get URL of kompass company page  from the page with request and cheerio
-4) Get info from the kompass page:
-    -No. of employees
-    -Address
-    -Year established
-    -Phone number?
-5) Fall back to fullcontact API if not found on kompass (100 free per month)
-*/
 
 
 Meteor.methods({
@@ -45,12 +37,8 @@ Meteor.methods({
 				phone:''
 			}
 
-			/* Clearbit Logo does not tell us if it is empty or not, we check if we can find the logo from other sources first, 
-			if not we use the clearbit logo */
-			const clearbitLogo = `https://logo-core.clearbit.com/${domain}`
 			const key = `AIzaSyD2mj2BjNyYUkNCrJJ3Rwx6ZuxyfkELpX4`;
 			const cx = `004951682930566350351:14cirkszqh4`
-			console.log(name);
 			const googleSearchEndpoint = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${name}`
 
 			request(googleSearchEndpoint, async (err,resp,body)=>{
@@ -60,6 +48,8 @@ Meteor.methods({
 				let json = JSON.parse(body);
 				//console.log(json.error.errors);
 				//console.log(json);
+
+				//console.log(body);
 				let googleUrls = json.items
 
 				/* Recommend is not scraped through Google as we can use recommends internal search engine, may switch over though*/
@@ -92,6 +82,8 @@ Meteor.methods({
 				const jobstreetInfo = await getJobstreetInfo(jobStreetUrl);
 				const recommendSgInfo = await getRecommendSgInfo(name);
 				const yeluSgInfo = await getYeluSgInfo(yeluUrl);
+				const zipleafInfo = await getZipleafInfo(name);
+				const tuugoInfo = await getTuugoInfo(name);
 
 				/* Info that we find here must adhere to the above schema!! */
 
@@ -99,7 +91,9 @@ Meteor.methods({
 					kompassInfo,
 					jobstreetInfo,
 					recommendSgInfo,
-					yeluSgInfo
+					yeluSgInfo,
+					zipleafInfo,
+					tuugoInfo
 				]
 
 				/* We will fill in the mising data for companyDetails here based on the above schema */
@@ -110,14 +104,18 @@ Meteor.methods({
 						}
 					}
 				}
-				if(companyDetails.logo == ''){
+
+				//
+
+				if(Boolean(companyDetails.logo) == false){
+					/* This logo may or may not be blank, but there is no way to check. 
+					If there is no logo obtained from the above profiles, then fall back to this.*/
+					const clearbitLogo = `https://logo-core.clearbit.com/${domain}`
 					companyDetails.logo = clearbitLogo;
 				}
 				console.log(companyDetails);
 				resolve(companyDetails);
-
 			})
-
 		})
 	},
 	getWebsiteInfo(url){

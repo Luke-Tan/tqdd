@@ -137,18 +137,176 @@ function getShares(url){
 
 function getNews(name,country,domain){
 	return new Promise(async (resolve,reject)=>{
+		const countryMarkers = [
+			'sg',
+			'singapore',
+			'my',
+			'malaysia'
+		];
+
+		const nameSplit = name.split(' ');
+		const nameLength = nameSplit.length;
 		//const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
 		//const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
 		//let googleRSSfeed = `https://news.google.com/news?q="${name}" ${country}&output=rss`
-		let googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
+
+		// for(let word of nameSplit){
+		// 	if(countryMarkers.includes(word.toLowerCase())){
+		// 		const index = nameSplit.indexOf(word.toLowerCase());
+		// 		countryMarker = word;
+		// 		nameSplit.splice(index, 1);
+		// 		name = nameSplit.join(' ');
+		// 		break
+		// 	}
+		// }
+
+		let firstWord;
+		let remainingWords;
+		let searchTerm;
+		if(nameLength > 1){
+			firstWord = nameSplit[0];
+			remainingWords = nameSplit.filter((item,index)=>{ return index !== 0 }).join(' ');
+			//Check if there is already a country inside the remaining words
+			for(let word of remainingWords){
+				if(countryMarkers.includes(word.toLowerCase)){
+					searchTerm = `"${firstWord}" ${remainingWords}`
+					break;
+				}
+			}
+			//If not, include the country in the search term if it is not undefined
+			if(country != undefined){
+				searchTerm = `"${firstWord}" ${remainingWords} ${country}`
+			} else {
+				searchTerm = `"${firstWord}" ${remainingWords}`
+			}
+		} else {
+			if(country != undefined){
+				searchTerm = `"${name}" ${country}`
+			} else {
+				searchTerm = `"${name}"`
+			}
+			
+		}
+
+
+		// if(countryMarker != undefined){
+		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${countryMarker}&hl=en-SG&gl=SG&ceid=SG:en` 
+		// } else if(country != undefined){
+		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
+		// } else {
+		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}"&hl=en-SG&gl=SG&ceid=SG:en` 
+		// }
+
+		const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
+		const googleRSSfeedDomain = `https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en` 
 		let parser = new Parser();
 
-		let feed = await parser.parseURL(googleRSSfeed);
-		//console.log(feed.items);
+		console.log(googleRSSfeed);
 
+		const feed = await parser.parseURL(googleRSSfeed);
+		const feed2 = await parser.parseURL(googleRSSfeedDomain)
+		//console.log(feed.items);
 		let promises = []
 
 		feed.items.forEach(async (item,index) => {
+		    console.log(item)
+		    if(index < 11){
+			    const title = item.title;
+			    let $ = cheerio.load(item.content);
+			    let thumbnail = ''
+			    try{
+				    thumbnail = $('img').attr('src');
+				    thumbnail = thumbnail.slice(2,thumbnail.length)
+			    }
+			    catch(error){
+			    	thumbnail = ''
+			    	//console.error('No thumbnail found!')
+			    }
+
+			    const pos = getAllIndexes(title,'-').slice(-1)[0]
+			    const mainTitle = title.slice(0,pos-1);
+			    const publisher = title.slice(pos+2,title.length);
+			    const url = item.link
+			    let snippet = item.contentSnippet.replace(mainTitle,'')
+			    snippet = snippet.replace(publisher,'');
+			    snippet = snippet.replace(/&nbsp;/g,'');
+
+				const articleText = new Promise((resolve,reject)=>{
+					request(url,(err,resp,body)=>{
+						if(err){
+							reject('')
+						}
+
+						const text = unfluff(body).text;
+						if(firstWord != undefined){
+							if(text.includes(firstWord)){
+					    		let type;
+					    		const regexp = new RegExp(name,'g');
+
+						    	const count = (text.match(regexp) || []).length;
+						    	//console.log(count);
+						    	if(count <= 3){
+						    		type='Mention'
+						    	} else if(count >= 4 && count <= 7){
+						    		type='Minor subject'
+						    	} else if(count >= 8){
+						    		type = 'Major subject'
+						    	}
+
+							    const newsObject = {
+							        title:item.title,
+							        snippet:snippet,
+							        date:item.pubDate,
+							        publisher:publisher,
+							        url:url,
+							        thumbnail:thumbnail,
+							        count:count,
+							        type:type
+							    }
+
+							    resolve(newsObject)
+							} else {
+								reject('')
+							}
+						} else {
+							if(text.includes(name)){
+					    		let type;
+					    		const regexp = new RegExp(name,'g');
+
+						    	const count = (text.match(regexp) || []).length;
+						    	//console.log(count);
+						    	if(count <= 3){
+						    		type='Mention'
+						    	} else if(count >= 4 && count <= 7){
+						    		type='Minor subject'
+						    	} else if(count >= 8){
+						    		type = 'Major subject'
+						    	}
+
+							    const newsObject = {
+							        title:item.title,
+							        snippet:snippet,
+							        date:item.pubDate,
+							        publisher:publisher,
+							        url:url,
+							        thumbnail:thumbnail,
+							        count:count,
+							        type:type
+							    }
+
+							    resolve(newsObject)
+							} else {
+								reject('');
+							}
+						}
+					})
+				})
+
+		    	promises.push(articleText);
+			}
+		});
+
+		feed2.items.forEach(async (item,index) => {
 		    //console.log(item)
 		    if(index < 11){
 			    const title = item.title;
@@ -171,55 +329,19 @@ function getNews(name,country,domain){
 			    snippet = snippet.replace(publisher,'');
 			    snippet = snippet.replace(/&nbsp;/g,'');
 
-			 //    console.time();
-			 //    const article = Scrape.website(item.link);
-			 //    console.timeEnd();
-			 //    console.log(item.link)
-
-				// data = unfluff(my_html_data);
-				// console.log(data.text);
-
-			 //    const articleText = article.text;
-		    	// const articleText = grabText(url)
-
-				const articleText = new Promise((resolve,reject)=>{
-					request(url,(err,resp,body)=>{
-						if(err){
-							reject('')
-						}
-						//let text;
-						const text = unfluff(body).text;
-						if(text.includes(name)){
-				    		let type;
-				    		const regexp = new RegExp(name,'g');
-
-					    	const count = (text.match(regexp) || []).length;
-					    	//console.log(count);
-					    	if(count <= 3){
-					    		type='Mention'
-					    	} else if(count >= 4 && count <= 7){
-					    		type='Minor subject'
-					    	} else if(count >= 8){
-					    		type = 'Major subject'
-					    	}
-
-						    const newsObject = {
-						        title:item.title,
-						        snippet:snippet,
-						        date:item.pubDate,
-						        publisher:publisher,
-						        url:url,
-						        thumbnail:thumbnail,
-						        count:count,
-						        type:type
-						    }
-
-						    resolve(newsObject)
-						} else {
-							reject('');
-						}
-					})
-				})
+			    const articleText = new Promise((resolve,reject)=>{
+				    const newsObject = {
+				        title:item.title,
+				        snippet:snippet,
+				        date:item.pubDate,
+				        publisher:publisher,
+				        url:url,
+				        thumbnail:thumbnail,
+				        count:2,
+				        type:'Mention'
+				    }
+			    	resolve(newsObject);
+			    })
 
 		    	promises.push(articleText);
 			}
@@ -233,7 +355,7 @@ function getNews(name,country,domain){
 
 		const news = await Promise.all(promises.map(p => p.catch(e => e)));
 		const validNews = news.filter(result => !(result == ''));
-		console.log(validNews);
+		//console.log(validNews);
 		resolve(validNews);
 		 
 		// request(newsUrl, (err,resp,body)=>{
@@ -359,6 +481,7 @@ Meteor.methods({
 				jobs:'',
 				newsFromDomain:''
 			}
+
 
 			//console.log(json)
 			const domainName = domainToName(domain)

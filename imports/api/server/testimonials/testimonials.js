@@ -33,15 +33,28 @@ const client = new language.LanguageServiceClient({
 let bayes = new natural.BayesClassifier();
 //var bayes = new natural.BayesClassifier();
 
+const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
+
+const plainUserData = WrongTestimonialCollection.find({}).fetch();
+
+
+testimonialUserData.forEach((testimonial)=>{
+	bayes.addDocument(testimonial.text,'testimonial');
+})
+
 testimonialData.forEach((testimonial)=>{
 	bayes.addDocument(testimonial,'testimonial');
 	//bayes.addDocument(testimonial,'testimonial');
 });
 
-plainData.forEach((doc)=>{
-	bayes.addDocument(doc,'plain');
+plainData.forEach((plain)=>{
+	bayes.addDocument(plain,'plain');
 	//bayes.addDocument(doc,'plain');
 });
+
+plainUserData.forEach((plain)=>{
+	bayes.addDocument(plain.text,'plain')
+})
 
 bayes.train();
 
@@ -163,6 +176,8 @@ function testimonialFirstPersonFilter(text){
 	const thirdPersonMarkers = ['they','them','their','I']
 	let firstPersonScore = 0;
 	let thirdPersonScore = 0;
+
+	/* Split into constituent words */
 	let textArray = text.split(' ');
 	textArray.forEach((word)=>{
 		if(firstPersonMarkers.includes(word)){
@@ -331,9 +346,11 @@ Meteor.methods({
 				if(href !== undefined){
 					const hrefLowerCase = href.toLowerCase();
 					const link = nodeurl.resolve(url,href);
-					// Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
-					// Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
-					// Reject links that are already inside the array in case there are multiple links pointing to the same url
+					/* 
+						Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
+						Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
+						Reject links that are already inside the array in case there are multiple links pointing to the same url 
+					*/
 					if(hrefLowerCase.includes('testimonial') || hrefLowerCase.includes('review') && !(hrefLowerCase.includes('#')) && !testimonialLinks.includes(link)){
 						testimonialLinks.push(link);
 					}
