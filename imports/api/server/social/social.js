@@ -143,73 +143,73 @@ function getNews(name,country,domain){
 			'my',
 			'malaysia'
 		];
-
+		let countryMarker;
 		const nameSplit = name.split(' ');
 		const nameLength = nameSplit.length;
 		//const newsUrl = `https://www.google.com/search?q="${name}" ${country}&tbm=nws`
 		//const newsUrl = `https://www.google.com.sg/search?tbm=nws&q="${name}"+OR+"${domain}"&lr=lang_en`
 		//let googleRSSfeed = `https://news.google.com/news?q="${name}" ${country}&output=rss`
 
-		// for(let word of nameSplit){
-		// 	if(countryMarkers.includes(word.toLowerCase())){
-		// 		const index = nameSplit.indexOf(word.toLowerCase());
-		// 		countryMarker = word;
-		// 		nameSplit.splice(index, 1);
-		// 		name = nameSplit.join(' ');
-		// 		break
-		// 	}
-		// }
-
-		let firstWord;
-		let remainingWords;
-		let searchTerm;
-		if(nameLength > 1){
-			firstWord = nameSplit[0];
-			remainingWords = nameSplit.filter((item,index)=>{ return index !== 0 }).join(' ');
-			//Check if there is already a country inside the remaining words
-			for(let word of remainingWords){
-				if(countryMarkers.includes(word.toLowerCase)){
-					searchTerm = `"${firstWord}" ${remainingWords}`
-					break;
-				}
+		for(let word of nameSplit){
+			if(countryMarkers.includes(word.toLowerCase())){
+				const index = nameSplit.indexOf(word.toLowerCase());
+				countryMarker = word;
+				nameSplit.splice(index, 1);
+				name = nameSplit.join(' ');
+				break
 			}
-			//If not, include the country in the search term if it is not undefined
-			if(country != undefined){
-				searchTerm = `"${firstWord}" ${remainingWords} ${country}`
-			} else {
-				searchTerm = `"${firstWord}" ${remainingWords}`
-			}
-		} else {
-			if(country != undefined){
-				searchTerm = `"${name}" ${country}`
-			} else {
-				searchTerm = `"${name}"`
-			}
-			
 		}
 
-
-		// if(countryMarker != undefined){
-		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${countryMarker}&hl=en-SG&gl=SG&ceid=SG:en` 
-		// } else if(country != undefined){
-		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
+		// let firstWord;
+		// let remainingWords;
+		// let searchTerm;
+		// if(nameLength > 1){
+		// 	firstWord = nameSplit[0];
+		// 	remainingWords = nameSplit.filter((item,index)=>{ return index !== 0 }).join(' ');
+		// 	//Check if there is already a country inside the remaining words
+		// 	for(let word of remainingWords){
+		// 		if(countryMarkers.includes(word.toLowerCase)){
+		// 			searchTerm = `"${firstWord}" ${remainingWords}`
+		// 			break;
+		// 		}
+		// 	}
+		// 	//If not, include the country in the search term if it is not undefined
+		// 	if(country != undefined){
+		// 		searchTerm = `"${firstWord}" ${remainingWords} ${country}`
+		// 	} else {
+		// 		searchTerm = `"${firstWord}" ${remainingWords}`
+		// 	}
 		// } else {
-		// 	googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}"&hl=en-SG&gl=SG&ceid=SG:en` 
+		// 	if(country != undefined){
+		// 		searchTerm = `"${name}" ${country}`
+		// 	} else {
+		// 		searchTerm = `"${name}"`
+		// 	}
+			
 		// }
 
-		const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
+		let googleRSSfeed;
+		if(countryMarker != undefined){
+			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${countryMarker}&hl=en-SG&gl=SG&ceid=SG:en` 
+		} else if(country != undefined){
+			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
+		} else {
+			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}"&hl=en-SG&gl=SG&ceid=SG:en` 
+		}
+
+		//const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
 		const googleRSSfeedDomain = `https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en` 
 		let parser = new Parser();
 
-		console.log(googleRSSfeed);
+		//console.log(googleRSSfeed);
 
-		const feed = await parser.parseURL(googleRSSfeed);
-		const feed2 = await parser.parseURL(googleRSSfeedDomain)
+		const mainFeed = await parser.parseURL(googleRSSfeed);
+		const domainFeed = await parser.parseURL(googleRSSfeedDomain)
 		//console.log(feed.items);
 		let promises = []
 
-		feed.items.forEach(async (item,index) => {
-		    console.log(item)
+		mainFeed.items.forEach(async (item,index) => {
+		    //console.log(item)
 		    if(index < 11){
 			    const title = item.title;
 			    let $ = cheerio.load(item.content);
@@ -238,66 +238,35 @@ function getNews(name,country,domain){
 						}
 
 						const text = unfluff(body).text;
-						if(firstWord != undefined){
-							if(text.includes(firstWord)){
-					    		let type;
-					    		const regexp = new RegExp(name,'g');
 
-						    	const count = (text.match(regexp) || []).length;
-						    	//console.log(count);
-						    	if(count <= 3){
-						    		type='Mention'
-						    	} else if(count >= 4 && count <= 7){
-						    		type='Minor subject'
-						    	} else if(count >= 8){
-						    		type = 'Major subject'
-						    	}
+						if(text.includes(name)){
+				    		let type;
+				    		const regexp = new RegExp(name,'g');
 
-							    const newsObject = {
-							        title:item.title,
-							        snippet:snippet,
-							        date:item.pubDate,
-							        publisher:publisher,
-							        url:url,
-							        thumbnail:thumbnail,
-							        count:count,
-							        type:type
-							    }
+					    	const count = (text.match(regexp) || []).length;
+					    	//console.log(count);
+					    	if(count <= 3){
+					    		type='Mention'
+					    	} else if(count >= 4 && count <= 7){
+					    		type='Minor subject'
+					    	} else if(count >= 8){
+					    		type = 'Major subject'
+					    	}
 
-							    resolve(newsObject)
-							} else {
-								reject('')
-							}
+						    const newsObject = {
+						        title:item.title,
+						        snippet:snippet,
+						        date:item.pubDate,
+						        publisher:publisher,
+						        url:url,
+						        thumbnail:thumbnail,
+						        count:count,
+						        type:type
+						    }
+
+						    resolve(newsObject)
 						} else {
-							if(text.includes(name)){
-					    		let type;
-					    		const regexp = new RegExp(name,'g');
-
-						    	const count = (text.match(regexp) || []).length;
-						    	//console.log(count);
-						    	if(count <= 3){
-						    		type='Mention'
-						    	} else if(count >= 4 && count <= 7){
-						    		type='Minor subject'
-						    	} else if(count >= 8){
-						    		type = 'Major subject'
-						    	}
-
-							    const newsObject = {
-							        title:item.title,
-							        snippet:snippet,
-							        date:item.pubDate,
-							        publisher:publisher,
-							        url:url,
-							        thumbnail:thumbnail,
-							        count:count,
-							        type:type
-							    }
-
-							    resolve(newsObject)
-							} else {
-								reject('');
-							}
+							reject('');
 						}
 					})
 				})
@@ -306,7 +275,7 @@ function getNews(name,country,domain){
 			}
 		});
 
-		feed2.items.forEach(async (item,index) => {
+		domainFeed.items.forEach(async (item,index) => {
 		    //console.log(item)
 		    if(index < 11){
 			    const title = item.title;

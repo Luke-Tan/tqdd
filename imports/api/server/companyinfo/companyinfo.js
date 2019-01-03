@@ -58,25 +58,31 @@ Meteor.methods({
 				let yeluUrl;
 				let kompassUrl;
 				//console.log(googleUrls);
-				for(let obj of googleUrls){
-					const url = obj.link
-					//console.log(url)
-					if(jobStreetUrl == undefined){
-						if(url.includes(`jobstreet`)){
-							jobStreetUrl = url
+				try{
+					for(let obj of googleUrls){
+						const url = obj.link
+						//console.log(url)
+						if(jobStreetUrl == undefined){
+							if(url.includes(`jobstreet`)){
+								jobStreetUrl = url
+							}
 						}
-					}
-					if(yeluUrl == undefined){
-						if(url.includes('yelu')){
-							yeluUrl = url
+						if(yeluUrl == undefined){
+							if(url.includes('yelu')){
+								yeluUrl = url
+							}
 						}
-					}
-					if(kompassUrl == undefined ){
-						if(url.includes(`kompass`)){
-							kompassUrl = url;
+						if(kompassUrl == undefined ){
+							if(url.includes(`kompass`)){
+								kompassUrl = url;
+							}
 						}
 					}
 				}
+				catch(error){
+					
+				}
+				
 
 				const kompassInfo = await getKompassInfo(kompassUrl,domain);
 				const jobstreetInfo = await getJobstreetInfo(jobStreetUrl);

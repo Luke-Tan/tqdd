@@ -8,9 +8,13 @@ import nlp from 'compromise';
 import { testimonialData, plainData } from './trainingdata.js';
 import language from '@google-cloud/language';
 import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
+import pd from 'paralleldots';
 
 /*Internal modules*/
 import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositives, falsePositives } from '../../both/collections/TestimonialCollection.js';
+
+/* Instantiate paralleldots */
+pd.apiKey = "l6SW7NUATYudvEHJE1dgWvg0AZACODHjGm65vH43Es8";
 
 /* Instantiate coreNLP server */
 const props = new Properties({
@@ -91,110 +95,239 @@ function isAuthorPreCheck(text){
 	}
 }
 
-let counter = 0;
+function getAllIndexes(arr, val) {
+    let indexes = [], i;
+    for(i = 0; i < arr.length; i++)
+        if (arr[i].type === val)
+            indexes.push(i);
+    return indexes;
+}
+
+function getMaxDistance(arrayOfIndexes) {
+	const arr = arrayOfIndexes;
+	let dist = 0;
+	const reversedArray = arrayOfIndexes.reverse();
+	let prevNumber;
+	let currentNumber;
+	reversedArray.forEach((index)=>{
+		currentNumber = index;
+		let diff = prevNumber-currentNumber
+		if(diff > dist){
+			dist = diff
+		}
+		prevNumber = index;
+	})
+	
+	return dist;
+}
+
 /* Testimonial functions */
-async function isAuthor(text,index){
-	let sentence = new CoreNLP.simple.Sentence(text);
-	const result = await pipeline.annotate(sentence)
-	  	.then(sent => {
-		    const entities = sent.nerTags();
-		    const collapsedEntities = countEntities(entities);	//Makes counting easier as coreNLP tags each word within a phrase as an entity itself e.g. Luke Tan => 'PERSON','PERSON'
-		    let people = 0;
-		    let orgs = 0;
-		    collapsedEntities.forEach(entity=>{	// Count the number of relevant entities within the text to determine if it is an author
-		    	if(entity == 'PERSON'){
-		    		people++
-		    	} else if(entity == 'ORGANIZATION'){
-		    		orgs++
-		    	}
-		    });
-		    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
-		    	console.log(text +' PASSED');
-		    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
-		    } else {
-		    	console.error(text+' FAILED')
-		    	return ''
-		    }
+async function isAuthor(text){
+
+	// let sentence = new CoreNLP.simple.Sentence(text);
+	// const result = await pipeline.annotate(sentence)
+	//   	.then(sent => {
+	// 	    const entities = sent.nerTags();
+	// 	    const collapsedEntities = countEntities(entities);	//Makes counting easier as coreNLP tags each word within a phrase as an entity itself e.g. Luke Tan => 'PERSON','PERSON'
+	// 	    let people = 0;
+	// 	    let orgs = 0;
+	// 	    collapsedEntities.forEach(entity=>{	// Count the number of relevant entities within the text to determine if it is an author
+	// 	    	if(entity == 'PERSON'){
+	// 	    		people++
+	// 	    	} else if(entity == 'ORGANIZATION'){
+	// 	    		orgs++
+	// 	    	}
+	// 	    });
+	// 	    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
+	// 	    	console.log(text +' PASSED');
+	// 	    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
+	// 	    } else {
+	// 	    	console.error(text+' FAILED')
+	// 	    	return ''
+	// 	    }
 	    
-	  	}).catch(err =>{
-	  		console.error('stanford NER error', err);
-	  		return '';
-	  	})
+	//   	}).catch(err =>{
+	//   		console.error('stanford NER error', err);
+	//   		return '';
+	//   	})
 	//   	.catch(async err => {
-	  		//console.log('FAILED' + 'NLP' + err)	  
-			// const document = {
-			// 	content:text,
-			// 	type: 'PLAIN_TEXT',
-			// }
-			// const result = await client
-			//   .analyzeEntities({document: document})
-			//   .then(results => {
-			//     const entities = results[0].entities;
-			//     let people = 0;
-			//     let organizations = 0;
+	//   		console.log('FAILED' + 'NLP' + err)	  
+	//   		}
 
-			//     entities.forEach(entity => {
-			      
-			//       if(entity.type == 'PERSON'){
-			      	
-			//         people++
-			//       }
-			//       if(entity.type == 'ORGANIZATION'){
-			//       	organizations++
-			//       }
-			//     });
-			   	
+	const document = {
+		content:text,
+		type: 'PLAIN_TEXT',
+	}
+	const result = await client
+	  .analyzeEntities({document: document})
+	  .then(results => {
+	    const entities = results[0].entities;
+	    let people = 0;
+	    let organizations = 0;
 
-			//    	if(0<people && people <3 || organizations == 1){
-			//    		console.log(text);
-			//    		return {'text':text,'index':index};
-			//    	} else {
-			//    		return '';
-			//    	}
-			//   })
-			//   .catch(err => {
-			//     console.error('google language ERROR:', err);
-			//     return '';
-			// });		
-	    	// console.log(text+' FAILED')
-	    	// return '';
-	 	//});
-	//counter++
+	    entities.forEach(entity => {
+	      
+	      if(entity.type == 'PERSON'){
+	      	
+	        people++
+	      }
+	      if(entity.type == 'ORGANIZATION'){
+	      	organizations++
+	      }
+	    });
+	   	
+
+	   	if(0<people && people <3 || organizations == 1){
+	   		return true
+	   	} else {
+	   		return false;
+	   	}
+	  })
+	  .catch(err => {
+	    console.error('google language ERROR:', err);
+	    return '';
+		});		
+	return result;
+}
+
+async function authorScore(text){
+	// const document = {
+	// 	content:text,
+	// 	type: 'PLAIN_TEXT',
+	// }
+	// const result = await client
+	// 	.analyzeEntities({document: document})
+	// 	.then(results => {
+	// 	    const entities = results[0].entities;
+	// 	    let score = 0;
+	// 	    entities.forEach(entity => {
+	// 	      console.log(entity)
+	// 	      if(entity.type == 'PERSON'){
+	// 	       	score += 3*entity.salience;
+	// 	      }
+	// 	      if(entity.type == 'ORGANIZATION'){
+	// 	      	score += 1*entity.salience;
+	// 	      }
+	// 	    });
+		   	
+	// 	    return score;
+	// 	})
+	// 	.catch(err => {
+	// 	    console.error('google language ERROR:', err);
+	// 	    return 0;
+	// 	});		
+	// return result;
+
+
+	const result = await pd.ner(text)
+	    .then((response) => {
+	        const entities = (JSON.parse(response)).entities;
+	        let score = 0;
+	        entities.forEach(entity => {
+	        	console.log(entity);
+	        	const category = entity.category;
+	        	const confidence = entity.confidence_score
+	        	if(category == 'name'){
+	        		score += 3*confidence;
+	        	}
+	        	if(category == 'organization'){
+	        		score += 1*confidence;
+	        	}
+	        	if(category == 'group'){
+	        		score += 1*confidence;
+	        	}
+	        })
+	        return score;
+	    })
+	    .catch((error) => {
+	        //console.log(error);
+	        return 0;
+    })
+	return result;
+}
+
+async function batchAuthorScore(arr){
+	console.log(arr);
+	const text_array = JSON.stringify(arr);
+	const result = await pd.nerBatch(text_array)
+	 	.then((response) => {
+	 		const score_array = []
+	        const everything = (JSON.parse(response)).entities;
+	        console.log(everything);
+	        everything.forEach(entities=>{
+	        	let score = 0;
+	        	entities.forEach(entity=>{
+		        	const category = entity.category;
+		        	const confidence = entity.confidence_score
+		        	if(category == 'name'){
+		        		score += 3*confidence;
+		        	}
+		        	if(category == 'organization'){
+		        		score += 1*confidence;
+		        	}
+		        	if(category == 'group'){
+		        		score += 1*confidence;
+		        	}
+	        	})
+	        	score_array.push(score)
+	        })
+	        return score_array;
+	    })
+	    .catch((error) =>{
+	        console.log(error);
+	        return [];
+	    });
 	return result;
 }
 
 function isTestimonial(text){
-	if(wordCount(text) > 9 && bayes.classify(text)=='testimonial'){ // A useful testimonial should have at least 10 words
-		return true;
+	if(wordCount(text) > 4 && bayes.classify(text)=='testimonial'){ // A useful testimonial should have at least 10 words
+		const classifications = bayes.getClassifications(text);
+		const testimonialScore = classifications[0].value;
+		const plainScore = classifications[1].value;
+		const factor = testimonialScore/plainScore;
+		if(factor > 100){
+			return true;
+		} else {
+			return false;
+		}
 	} else {
 		return false;
 	}
 }
 
 function testimonialFirstPersonFilter(text){
-	const firstPersonMarkers = ['us','we','our','you']
-	const thirdPersonMarkers = ['they','them','their','I']
+	const firstPersonMarkers = ['us','our']
+	const thirdPersonMarkers = ['they','them','their','i','she','he','my','thank','his','her']
+
 	let firstPersonScore = 0;
 	let thirdPersonScore = 0;
 
 	/* Split into constituent words */
-	let textArray = text.split(' ');
+	const textArray = text.split(' ');
+	const textLength = textArray.length;
 	textArray.forEach((word)=>{
-		if(firstPersonMarkers.includes(word)){
+		if(firstPersonMarkers.includes(word.toLowerCase())){
 			firstPersonScore++
-		} else if(thirdPersonMarkers.includes(word)){
+		} else if(thirdPersonMarkers.includes(word.toLowerCase)){
 			thirdPersonScore++
 		}
 	})
-	if(thirdPersonScore >= firstPersonScore){
-		return true;
+
+	if(textLength > 60){
+		if(thirdPersonScore >= firstPersonScore){
+			return true;
+		} else {
+			return false;
+		}
 	} else {
-		return false;
+		return true;
 	}
 }
 
 async function getTestimonials(links){
 	let promises = [];
+	console.log(links);
 	links.forEach(link=>{
 		promises.push(classifyTestimonials(link).then(results=>{
 			return results;
@@ -206,7 +339,7 @@ async function getTestimonials(links){
 
 function classifyTestimonials(link){
 	return new Promise((resolve,reject)=>{
-		request(link,(err,resp,body)=>{
+		request(link,async (err,resp,body)=>{
 			if(err){
 				reject(err);
 			}
@@ -216,63 +349,268 @@ function classifyTestimonials(link){
 				let testimonials = [];
 				let testimonialsNoFilter = [];
 
-				$('*').not('script style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+				$('strong,u,a').each(function () {
+					$(this).replaceWith($(this).text()+' ');
+				});
+
+				let testimonialText = '';
+				$('*').not('script,style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
 					let text;
 					if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
 						text = $(element).first().contents().filter(function() {
 						    return this.type === 'text';
 						}).text().trim();	
+						//console.log(text);
 					} else {
 						text = $(element).text().trim();		// Get text of the element
 					} 
 					/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
-					if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>')){ 
-						texts.push(text);
+					if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>') ){ 
+						if(isTestimonial(text)){
+							//texts.push({'text':text,type:'testimonial'});
+							testimonialText += text
+						} else {
+							if(testimonialText != ''){
+								texts.push({'text':testimonialText,type:'testimonial'})
+								testimonialText = '';
+							}
+							texts.push({'text':text,type:'plain'});
+						}
 					}
 				});
-				
-				let authorPromises = [];
-				//console.log(texts);
-				let testimonialText = '';
-				let id = 0;
-				//console.log(texts);
-				texts.forEach((item,index)=>{
-					const text = item;
-					const lowtext = text.toLowerCase();
-					if(isTestimonial(text)){
-						testimonialText += text;
-					} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && 
-						!lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
-						let author = text;
-						id++
 
-						let scores = bayes.getClassifications(testimonialText);
-						let testimonial = {
-							'id':'testimonial_'+String(id),
-							'text':testimonialText,
-							'author':author,
-							'scores':scores
+
+				const testimonialIndexes = getAllIndexes(texts,'testimonial');
+				if(testimonialIndexes.length == 0){
+					resolve({testimonials:[],testimonialsNoFilter:[]});
+					return;
+				}
+
+				const maxDistance = getMaxDistance(testimonialIndexes);
+				let firstTestimonialIndex = Math.min(...testimonialIndexes);
+				let lastTestimonialIndex = Math.max(...testimonialIndexes);
+				console.log(maxDistance);
+
+				let start = firstTestimonialIndex-maxDistance;
+
+				if(start < 0){
+					start = 0;
+				}
+				let end = lastTestimonialIndex+maxDistance;
+				if(end > texts.length-1){
+					end = texts.length-1
+				}
+				let thereIsAnAuthorBeforeTestimonial;
+				let thereIsAnAuthorAfterTestimonial;
+				let firstAuthorIndex;
+				let lastAuthorIndex;
+
+				let authorBeforeTestimonialTexts = []
+				for(let i=firstTestimonialIndex-1; i>=start; i--){
+					//console.log(i)
+					const text = texts[i].text;
+					authorBeforeTestimonialTexts.push(text);
+					//authorBeforeTestimonialScores.push(score/(firstTestimonialIndex-i))
+				}
+
+				let authorAfterTestimonialTexts = []
+				for(let i=lastTestimonialIndex+1; i<=end; i++){
+					const text = texts[i].text;
+					//const score = await authorScore(text);
+					authorAfterTestimonialTexts.push(text);
+					//authorAfterTestimonialScores.push(score/(i-lastTestimonialIndex));
+				}
+
+				const authorBeforeTestimonialScores = await batchAuthorScore(authorBeforeTestimonialTexts);
+				const authorAfterTestimonialScores = await batchAuthorScore(authorAfterTestimonialTexts);
+				const authorBeforeTestimonialSum = authorBeforeTestimonialScores.reduce(function(a, b) { return a + b; }, 0);
+				const authorAfterTestimonialSum = authorAfterTestimonialScores.reduce(function(a, b){return a + b; }, 0);
+
+
+				let slicedTexts = texts.slice(start,end+1);
+				console.log(slicedTexts);
+
+
+				if(authorBeforeTestimonialSum <= authorAfterTestimonialSum){
+					thereIsAnAuthorAfterTestimonial = true;
+				} else {
+					thereIsAnAuthorBeforeTestimonial = true;
+				}
+				
+				if(thereIsAnAuthorBeforeTestimonial){
+					firstAuthorIndex = firstTestimonialIndex-1-authorBeforeTestimonialScores.indexOf(Math.max(...authorBeforeTestimonialScores));
+				} else {
+					if(authorAfterTestimonialScores.length>0){
+						lastAuthorIndex = lastTestimonialIndex+1+authorAfterTestimonialScores.indexOf(Math.max(...authorAfterTestimonialScores));
+					} else {
+						lastAuthorIndex = lastTestimonialIndex+1;
+					}
+				}
+
+				if(thereIsAnAuthorBeforeTestimonial){
+					/* Assume author appears BEFORE the testimonials */
+					console.error('AUTHOR BEFORE TESTIMONIALS');
+					let testimonialText = '';
+					//console.log(firstAuthorIndex);
+					let authorText = texts[firstAuthorIndex].text + ' ';
+					let id = 0;
+					for(i=firstAuthorIndex+1; i<end; i++){
+						// console.log(i);
+						// console.log(texts[i]);
+						const text = texts[i].text;
+						const type = texts[i].type;
+						const lowtext = text.toLowerCase();
+						if(type == 'testimonial'){
+							testimonialText = text;
+							if(authorText != ''){
+								id++;
+								let testimonial = {
+									id:'testimonial_'+String(id),
+									text:testimonialText,
+									author:authorText
+								}
+								testimonials.push(testimonial);
+								testimonialText = '';
+								authorText = '';
+							}
+						} else if(!lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+							authorText += `${text} `
 						}
-						const classifications = bayes.getClassifications(testimonialText);
-						const testimonialScore = classifications[0].value;
-						const plainScore = classifications[1].value;
-						const factor = testimonialScore/plainScore;
-						if(factor > 100){
-							testimonialsNoFilter.push(testimonial);
-							if(testimonialFirstPersonFilter(testimonialText)){
-								testimonials.push(testimonial)
+					}
+				} else {
+					/* Assume author appears AFTER the testimonials */
+					console.error('AUTHOR AFTER TESTIMONIALS');
+					let testimonialText = texts[firstTestimonialIndex].text;
+					let authorText = '';
+					let id = 0;
+					for(let i=firstTestimonialIndex+1; i<=lastAuthorIndex; i++){
+						//console.log(testimonialText);
+						const text = texts[i].text;
+						//console.log(text);
+						const type = texts[i].type;
+						const lowtext = text.toLowerCase();
+						/* Add each strung testimonial+author when the next testimonial is reached, or if nothing is left.*/
+						if(type == 'testimonial'){
+							id++
+							let testimonial = {
+								id: 'testimonial_'+String(id),
+								text: testimonialText,
+								author: authorText,
+							}
+							testimonials.push(testimonial);
+							authorText = '';
+							testimonialText = text
+						} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+							authorText += `${text} `
+							if(i==lastAuthorIndex){
+								id++
+								let testimonial = {
+									id: 'testimonial_'+String(id),
+									text: testimonialText,
+									author: authorText,
+								}
+								testimonials.push(testimonial);
+								authorText = '';
+								testimonialText = text
 							}
 						}
-						testimonialText = '';
-
-					//	testimonialsNoFilter.push(testimonial);
 					}
-				})
-				//resolve([testimonials,testimonialsNoFilter]);
+				}
+				// if(authorBeforeTestimonial && !authorAfterTestimonial){
+				// 	/* Assume author appears BEFORE the testimonials */
+				// 	let testimonialText = '';
+				// 	let id = 0;
+				// 	const reversedTexts = slicedTexts.slice().reverse();
+				// 	reversedTexts.forEach((item,index)=>{
+				// 		const text = item.text;
+				// 		const type = item.type;
+				// 		const lowtext = text.toLowerCase();
+				// 		if(type == 'testimonial'){
+				// 			testimonialText = text + testimonialText;
+				// 		} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+				// 			let author = text;
+				// 			id++
+				// 			let testimonial = {
+				// 				id:'testimonial_'+String(id),
+				// 				text:testimonialText,
+				// 				author:author,
+				// 			}
+				// 			testimonials.push(testimonial);
+				// 			testimonialText =''
+				// 		}
+				// 	})
+				// } else {
+				// 	/* Assume author appears AFTER the testimonials */
+				// 	let testimonialText = '';
+				// 	let id = 0;
+				// 	slicedTexts.forEach((item,index)=>{
+				// 		const text = item.text;
+				// 		const type = item.type;
+				// 		const lowtext = text.toLowerCase();
+				// 		if(type == 'testimonial'){
+				// 			testimonialText += text
+				// 		} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+				// 			let author = text;
+				// 			id++
+				// 			let testimonial = {
+				// 				id: 'testimonial_'+String(id),
+				// 				text: testimonialText,
+				// 				author: author,
+				// 			}
+				// 			testimonials.push(testimonial);
+				// 			testimonialText = '';
+				// 		}
+				// 	})
+				// }
 				resolve({
 					testimonials:testimonials,
-					testimonialsNoFilter:testimonialsNoFilter,
+					testimonialsNoFilter:testimonials,
 				})
+				// let authorPromises = [];
+				// //console.log(texts);
+				// let testimonialText = '';
+				// let id = 0;
+				// //console.log(texts);
+				// //console.log(texts)
+				// console.log(texts);
+
+				// texts.forEach((item,index)=>{
+				// 	const text = item.trim();
+				// 	const lowtext = text.toLowerCase();
+				// 	if(isTestimonial(text)){
+				// 		testimonialText += text;
+				// 	} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
+				// 		let author = text;
+				// 		id++
+
+				// 		let scores = bayes.getClassifications(testimonialText);
+				// 		let testimonial = {
+				// 			'id':'testimonial_'+String(id),
+				// 			'text':testimonialText,
+				// 			'author':author,
+				// 			'scores':scores
+				// 		}
+				// 		const classifications = bayes.getClassifications(testimonialText);
+				// 		const testimonialScore = classifications[0].value;
+				// 		const plainScore = classifications[1].value;
+				// 		const factor = testimonialScore/plainScore;
+				// 		if(factor > 100){
+				// 			testimonialsNoFilter.push(testimonial);
+				// 			if(testimonialFirstPersonFilter(testimonialText)){
+				// 				testimonials.push(testimonial)
+				// 			}
+				// 		}
+				// 		testimonialText = '';
+
+				// 	//	testimonialsNoFilter.push(testimonial);
+				// 	}
+				// })
+
+				// //resolve([testimonials,testimonialsNoFilter]);
+				// resolve({
+				// 	testimonials:testimonials,
+				// 	testimonialsNoFilter:testimonialsNoFilter,
+				// })
 
 				/*
 				texts.forEach((item,index)=>{
@@ -339,23 +677,29 @@ Meteor.methods({
 			let $ = cheerio.load(body);
 
 			let testimonialLinks = [];
-			testimonialLinks.push(url); //Feed initial URL back in for easy looping(may need to change to help performance)
+			//testimonialLinks.push(url); //Feed initial URL back in for easy looping(may need to change to help performance)
 
 			$('a').each(function(i, link){
-				const href = $(link).attr('href');
+				let href = $(link).attr('href');
 				if(href !== undefined){
 					const hrefLowerCase = href.toLowerCase();
+					if(href[href.length -1] == '/'){
+						href = href.slice(0, -1);
+					}
 					const link = nodeurl.resolve(url,href);
 					/* 
 						Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
 						Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
 						Reject links that are already inside the array in case there are multiple links pointing to the same url 
 					*/
-					if(hrefLowerCase.includes('testimonial') || hrefLowerCase.includes('review') && !(hrefLowerCase.includes('#')) && !testimonialLinks.includes(link)){
+					if((hrefLowerCase.includes('testimonial') || hrefLowerCase.includes('review')) && !(hrefLowerCase.includes('#')) && !(testimonialLinks.includes(link))){
 						testimonialLinks.push(link);
 					}
 				}
 			});
+			if(testimonialLinks.length == 0){
+				testimonialLinks.push(url);
+			}
 
 			future['return'](testimonialLinks);
 		});
