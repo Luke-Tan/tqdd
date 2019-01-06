@@ -34,9 +34,9 @@ const client = new language.LanguageServiceClient({
 	}
 });
 
-let bayes = new natural.BayesClassifier();
+//let bayes = new natural.BayesClassifier();
 
-//let bayes = new natural.LogisticRegressionClassifier();
+let bayes = new natural.LogisticRegressionClassifier();
 
 const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
 
