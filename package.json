@@ -14,6 +14,7 @@
     "compromise": "^11.6.0",
     "corenlp": "^1.4.2",
     "fibers": "^2.0.0",
+    "fs-path": "0.0.24",
     "fuzzaldrin": "^2.1.0",
     "google": "^2.1.0",
     "google-gax": "^0.14.5",

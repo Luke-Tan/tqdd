@@ -1,6 +1,5 @@
 /*Npm Modules */
 import natural from 'natural';
-import Future from 'fibers/future';
 import cheerio from 'cheerio';
 import request from 'request';
 import nodeurl from 'url';
@@ -9,6 +8,7 @@ import { testimonialData, plainData } from './trainingdata.js';
 import language from '@google-cloud/language';
 import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
 import pd from 'paralleldots';
+import logistic_classifier from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier.json'
 
 /*Internal modules*/
 import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositives, falsePositives } from '../../both/collections/TestimonialCollection.js';
@@ -34,35 +34,39 @@ const client = new language.LanguageServiceClient({
 	}
 });
 
-let bayes = new natural.BayesClassifier();
+//let bayes = new natural.BayesClassifier();
 
-//let bayes = new natural.LogisticRegressionClassifier();
+// let bayes = new natural.LogisticRegressionClassifier();
 
-const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
+// const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
 
-const plainUserData = WrongTestimonialCollection.find({}).fetch();
+// const plainUserData = WrongTestimonialCollection.find({}).fetch();
 
 
-testimonialUserData.forEach((testimonial)=>{
-	bayes.addDocument(testimonial.text,'testimonial');
-})
+// testimonialUserData.forEach((testimonial)=>{
+// 	bayes.addDocument(testimonial.text,'testimonial');
+// })
 
-testimonialData.forEach((testimonial)=>{
-	bayes.addDocument(testimonial,'testimonial');
-	//bayes.addDocument(testimonial,'testimonial');
-});
+// testimonialData.forEach((testimonial)=>{
+// 	bayes.addDocument(testimonial,'testimonial');
+// 	//bayes.addDocument(testimonial,'testimonial');
+// });
 
-plainData.forEach((plain)=>{
-	bayes.addDocument(plain,'plain');
-	//bayes.addDocument(doc,'plain');
-});
+// plainData.forEach((plain)=>{
+// 	bayes.addDocument(plain,'plain');
+// 	//bayes.addDocument(doc,'plain');
+// });
 
-plainUserData.forEach((plain)=>{
-	bayes.addDocument(plain.text,'plain')
-})
+// plainUserData.forEach((plain)=>{
+// 	bayes.addDocument(plain.text,'plain')
+// })
 
-bayes.train();
+// bayes.train();
 
+
+// bayes.save('classifier.json', function(err, classifier) {
+    
+// });
 /* Agnostic functions */
 function wordCount(str) {
 	if(typeof(str)=='string'){
@@ -325,9 +329,9 @@ async function batchAuthorScore(arr){
 	return result;
 }
 
-function isTestimonial(text){
-	if(wordCount(text) > 4 && bayes.classify(text)=='testimonial'){ // A useful testimonial should have at least 10 words
-		const classifications = bayes.getClassifications(text);
+function isTestimonial(text,classifier){
+	if(wordCount(text) > 4 && classifier.classify(text)=='testimonial'){ // A useful testimonial should have at least 10 words
+		const classifications = classifier.getClassifications(text);
 		const testimonialScore = classifications[0].value;
 		const plainScore = classifications[1].value;
 		const factor = testimonialScore/plainScore;
@@ -340,6 +344,7 @@ function isTestimonial(text){
 		return false;
 	}
 }
+
 
 function testimonialFirstPersonFilter(text){
 	const firstPersonMarkers = ['us','our']
@@ -389,381 +394,209 @@ function classifyTestimonials(link){
 				reject(err);
 			}
 			if(!err && resp.statusCode == 200){
-				let $ = cheerio.load(body);
-				let texts = [];
-				let testimonials = [];
-				let testimonialsNoFilter = [];
+				// natural.LogisticRegressionClassifier.load(JSON.parse(logistic_classifier), null, async function(err, classifier) {
+					const classifier = natural.LogisticRegressionClassifier.restore((logistic_classifier));
+					let $ = cheerio.load(body);
+					let texts = [];
+					let testimonials = [];
+					let testimonialsNoFilter = [];
 
-				$('br').each(function () {
-					$(this).replaceWith(' ');
-				});
+					$('br').each(function () {
+						$(this).replaceWith(' ');
+					});
 
-				let testimonialText = '';
-				$('*').not('script,style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
-					let text;
-					const childNodes = $(element).childNodes;
-					if(Boolean(childNodes) != false){
-						childNodes.forEach(child => {
-							if (
-								child.type === 'tag' && 
-								child.prev.type === 'text' &&
-								child.prev.data.trim() !== '' && 
-								child.next.type === 'text' &&
-								child.next.data.trim() !== ''
-							) {
-								$(child).replaceWith($(child).text());
-							}
-						})
-					}
+					let testimonialText = '';
+					$('*').not('script,style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
+						let text;
+						const childNodes = $(element).childNodes;
+						if(Boolean(childNodes) != false){
+							childNodes.forEach(child => {
+								if (
+									child.type === 'tag' && 
+									child.prev.type === 'text' &&
+									child.prev.data.trim() !== '' && 
+									child.next.type === 'text' &&
+									child.next.data.trim() !== ''
+								) {
+									$(child).replaceWith($(child).text());
+								}
+							})
+						}
 
-					if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
-						text = $(element).first().contents().filter(function() {
-						    return this.type === 'text';
-						}).text().trim();	
-						//console.log(text);
-					} else {
-						text = $(element).text().trim();		// Get text of the element
-					} 
-					/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
-					if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>') ){ 
-						if(isTestimonial(text)){
-							//texts.push({'text':text,type:'testimonial'});
-							testimonialText += text
+						if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
+							text = $(element).first().contents().filter(function() {
+							    return this.type === 'text';
+							}).text().trim();	
+							//console.log(text);
 						} else {
-							if(testimonialText != ''){
-								texts.push({'text':testimonialText,type:'testimonial'})
-								testimonialText = '';
+							text = $(element).text().trim();		// Get text of the element
+						} 
+						/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
+						if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>') ){ 
+							if(isTestimonial(text,classifier)){
+								//texts.push({'text':text,type:'testimonial'});
+								testimonialText += text
+							} else {
+								if(testimonialText != ''){
+									texts.push({'text':testimonialText,type:'testimonial'})
+									testimonialText = '';
+								}
+								texts.push({'text':text,type:'plain'});
 							}
-							texts.push({'text':text,type:'plain'});
 						}
+					});
+
+
+					const testimonialIndexes = getAllIndexes(texts,'testimonial');
+					if(testimonialIndexes.length == 0){
+						resolve({testimonials:[],testimonialsNoFilter:[]});
+						return;
 					}
-				});
+
+					const { maxDistance , minDistance } = getDistances(testimonialIndexes);
+					//console.log(testimonialIndexes);
+					console.error(`MIN DISTANCE IS ${minDistance}`);
+					let firstTestimonialIndex = Math.min(...testimonialIndexes);
+					let lastTestimonialIndex = Math.max(...testimonialIndexes);
+					console.log(maxDistance);
+
+					let start = firstTestimonialIndex-maxDistance;
+
+					if(start < 0){
+						start = 0;
+					}
+					let end = lastTestimonialIndex+maxDistance;
+					if(end > texts.length-1){
+						end = texts.length-1
+					}
+					let thereIsAnAuthorBeforeTestimonial;
+					let thereIsAnAuthorAfterTestimonial;
+					let firstAuthorIndex;
+					let lastAuthorIndex;
+
+					let authorBeforeTestimonialTexts = []
+					for(let i=firstTestimonialIndex-1; i>=start; i--){
+						//console.log(i)
+						const text = texts[i].text;
+						authorBeforeTestimonialTexts.push(text);
+						//authorBeforeTestimonialScores.push(score/(firstTestimonialIndex-i))
+					}
+
+					let authorAfterTestimonialTexts = []
+					for(let i=lastTestimonialIndex+1; i<=end; i++){
+						const text = texts[i].text;
+						//const score = await authorScore(text);
+						authorAfterTestimonialTexts.push(text);
+						//authorAfterTestimonialScores.push(score/(i-lastTestimonialIndex));
+					}
+
+					const authorBeforeTestimonialScores = await batchAuthorScore(authorBeforeTestimonialTexts);
+					const authorAfterTestimonialScores = await batchAuthorScore(authorAfterTestimonialTexts);
+					const authorBeforeTestimonialSum = authorBeforeTestimonialScores.reduce(function(a, b) { return a + b; }, 0);
+					const authorAfterTestimonialSum = authorAfterTestimonialScores.reduce(function(a, b){return a + b; }, 0);
 
 
-				const testimonialIndexes = getAllIndexes(texts,'testimonial');
-				if(testimonialIndexes.length == 0){
-					resolve({testimonials:[],testimonialsNoFilter:[]});
-					return;
-				}
-
-				const { maxDistance , minDistance } = getDistances(testimonialIndexes);
-				//console.log(testimonialIndexes);
-				console.error(`MIN DISTANCE IS ${minDistance}`);
-				let firstTestimonialIndex = Math.min(...testimonialIndexes);
-				let lastTestimonialIndex = Math.max(...testimonialIndexes);
-				console.log(maxDistance);
-
-				let start = firstTestimonialIndex-maxDistance;
-
-				if(start < 0){
-					start = 0;
-				}
-				let end = lastTestimonialIndex+maxDistance;
-				if(end > texts.length-1){
-					end = texts.length-1
-				}
-				let thereIsAnAuthorBeforeTestimonial;
-				let thereIsAnAuthorAfterTestimonial;
-				let firstAuthorIndex;
-				let lastAuthorIndex;
-
-				let authorBeforeTestimonialTexts = []
-				for(let i=firstTestimonialIndex-1; i>=start; i--){
-					//console.log(i)
-					const text = texts[i].text;
-					authorBeforeTestimonialTexts.push(text);
-					//authorBeforeTestimonialScores.push(score/(firstTestimonialIndex-i))
-				}
-
-				let authorAfterTestimonialTexts = []
-				for(let i=lastTestimonialIndex+1; i<=end; i++){
-					const text = texts[i].text;
-					//const score = await authorScore(text);
-					authorAfterTestimonialTexts.push(text);
-					//authorAfterTestimonialScores.push(score/(i-lastTestimonialIndex));
-				}
-
-				const authorBeforeTestimonialScores = await batchAuthorScore(authorBeforeTestimonialTexts);
-				const authorAfterTestimonialScores = await batchAuthorScore(authorAfterTestimonialTexts);
-				const authorBeforeTestimonialSum = authorBeforeTestimonialScores.reduce(function(a, b) { return a + b; }, 0);
-				const authorAfterTestimonialSum = authorAfterTestimonialScores.reduce(function(a, b){return a + b; }, 0);
+					let slicedTexts = texts.slice(start,end+1);
+					console.log(slicedTexts);
 
 
-				let slicedTexts = texts.slice(start,end+1);
-				console.log(slicedTexts);
-
-
-				if(authorBeforeTestimonialSum <= authorAfterTestimonialSum){
-					thereIsAnAuthorAfterTestimonial = true;
-				} else {
-					thereIsAnAuthorBeforeTestimonial = true;
-				}
-				
-				if(thereIsAnAuthorBeforeTestimonial){
-					firstAuthorIndex = firstTestimonialIndex-1-authorBeforeTestimonialScores.indexOf(Math.max(...authorBeforeTestimonialScores));
-				} else {
-					if(authorAfterTestimonialScores.length>0){
-						lastAuthorIndex = lastTestimonialIndex+1+authorAfterTestimonialScores.indexOf(Math.max(...authorAfterTestimonialScores));
+					if(authorBeforeTestimonialSum <= authorAfterTestimonialSum){
+						thereIsAnAuthorAfterTestimonial = true;
 					} else {
-						lastAuthorIndex = lastTestimonialIndex+1;
+						thereIsAnAuthorBeforeTestimonial = true;
 					}
-				}
-
-				if(thereIsAnAuthorBeforeTestimonial){
-					console.error('AUTHOR BEFORE TESTIMONIAL')
-					let id = 0;
-					for(let index of testimonialIndexes){
-						id++
-						const testimonialText = texts[index].text;
-						let author = ''
-						let authorCounter = 0;
-						for(let i = 1; i<=maxDistance; i++){
-							const authorIndex = index-i
-							if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
-								break;
-							}
-							const authorText = texts[authorIndex].text;
-							const lowAuthorText = authorText.toLowerCase();
-							if(
-								!lowAuthorText.includes('thank') && 	//Authors usually don't have these words... right??
-								!lowAuthorText.includes('regard') && 
-								!lowAuthorText.includes('forward') && 
-								!lowAuthorText.includes('wish') &&
-								!lowAuthorText.includes('read more') &&
-								wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
-								authorCounter < minDistance &&
-								lowerAuthorText.length>2
-							) {
-								authorCounter++;
-								author += `${authorText} | `
-							}
-
+					
+					if(thereIsAnAuthorBeforeTestimonial){
+						firstAuthorIndex = firstTestimonialIndex-1-authorBeforeTestimonialScores.indexOf(Math.max(...authorBeforeTestimonialScores));
+					} else {
+						if(authorAfterTestimonialScores.length>0){
+							lastAuthorIndex = lastTestimonialIndex+1+authorAfterTestimonialScores.indexOf(Math.max(...authorAfterTestimonialScores));
+						} else {
+							lastAuthorIndex = lastTestimonialIndex+1;
 						}
-						const testimonial = {
-							id:'testimonial_'+String(id),
-							text:testimonialText,
-							author: author
-						}
-						testimonials.push(testimonial);
 					}
-				} else {
-					console.error('AUTHOR AFTER TESTIMONIAL')
-					let id = 0;
-					for(let index of testimonialIndexes){
-						id++
-						const testimonialText = texts[index].text;
-						let author = ''
-						let authorCounter = 0;
-						for(let i = 1; i<=maxDistance; i++){
-							const authorIndex = index+i
-							if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
-								break;
+
+					if(thereIsAnAuthorBeforeTestimonial){
+						console.error('AUTHOR BEFORE TESTIMONIAL')
+						let id = 0;
+						for(let index of testimonialIndexes){
+							id++
+							const testimonialText = texts[index].text;
+							let author = ''
+							let authorCounter = 0;
+							for(let i = 1; i<=maxDistance; i++){
+								const authorIndex = index-i
+								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
+									break;
+								}
+								const authorText = texts[authorIndex].text;
+								const lowAuthorText = authorText.toLowerCase();
+								if(
+									!lowAuthorText.includes('thank') && 	//Authors usually don't have these words... right??
+									!lowAuthorText.includes('regard') && 
+									!lowAuthorText.includes('forward') && 
+									!lowAuthorText.includes('wish') &&
+									!lowAuthorText.includes('read more') &&
+									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
+									authorCounter < minDistance &&
+									lowerAuthorText.length>2
+								) {
+									authorCounter++;
+									author += `${authorText} | `
+								}
+
 							}
-							const authorText = texts[authorIndex].text;
-							const lowAuthorText = authorText.toLowerCase();
-							if(
-								!lowAuthorText.includes('thank') && //Authors usually don't have these words... right??
-								!lowAuthorText.includes('regard') && 
-								!lowAuthorText.includes('forward') && 
-								!lowAuthorText.includes('wish') &&
-								!lowAuthorText.includes('read more') &&
-								wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
-								lowAuthorText.length>2 &&
-								authorCounter < minDistance
-							) {
-								authorCounter++;
-								author += `${authorText} | `
+							const testimonial = {
+								id:'testimonial_'+String(id),
+								text:testimonialText,
+								author: author
 							}
+							testimonials.push(testimonial);
 						}
-						const testimonial = {
-							id:'testimonial_'+String(id),
-							text:testimonialText,
-							author: author
+					} else {
+						console.error('AUTHOR AFTER TESTIMONIAL')
+						let id = 0;
+						for(let index of testimonialIndexes){
+							id++
+							const testimonialText = texts[index].text;
+							let author = ''
+							let authorCounter = 0;
+							for(let i = 1; i<=maxDistance; i++){
+								const authorIndex = index+i
+								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
+									break;
+								}
+								const authorText = texts[authorIndex].text;
+								const lowAuthorText = authorText.toLowerCase();
+								if(
+									!lowAuthorText.includes('thank') && //Authors usually don't have these words... right??
+									!lowAuthorText.includes('regard') && 
+									!lowAuthorText.includes('forward') && 
+									!lowAuthorText.includes('wish') &&
+									!lowAuthorText.includes('read more') &&
+									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
+									lowAuthorText.length>2 &&
+									authorCounter < minDistance
+								) {
+									authorCounter++;
+									author += `${authorText} | `
+								}
+							}
+							const testimonial = {
+								id:'testimonial_'+String(id),
+								text:testimonialText,
+								author: author
+							}
+							testimonials.push(testimonial)
 						}
-						testimonials.push(testimonial)
 					}
-				}
-				// if(thereIsAnAuthorBeforeTestimonial){
-				// 	/* Assume author appears BEFORE the testimonials */
-				// 	console.error('AUTHOR BEFORE TESTIMONIALS');
-				// 	let testimonialText = '';
-				// 	//console.log(firstAuthorIndex);
-				// 	let authorText = texts[firstAuthorIndex].text + ' ';
-				// 	let id = 0;
-				// 	for(i=firstAuthorIndex+1; i<end; i++){
-				// 		// console.log(i);
-				// 		// console.log(texts[i]);
-				// 		const text = texts[i].text;
-				// 		const type = texts[i].type;
-				// 		const lowtext = text.toLowerCase();
-				// 		if(type == 'testimonial'){
-				// 			testimonialText = text;
-				// 			if(authorText != ''){
-				// 				id++;
-				// 				let testimonial = {
-				// 					id:'testimonial_'+String(id),
-				// 					text:testimonialText,
-				// 					author:authorText
-				// 				}
-				// 				testimonials.push(testimonial);
-				// 				testimonialText = '';
-				// 				authorText = '';
-				// 			}
-				// 		} else if (
-				// 			!lowtext.includes('thank') && 
-				// 			!lowtext.includes('regard') && 
-				// 			!lowtext.includes('forward') && 
-				// 			!lowtext.includes('wish') &&
-				// 			!lowtext.includes('read more') &&
-				// 			 text.length>2
-				// 		) {
-				// 			authorText += `${text} | `
-				// 		}
-				// 	}
-				// } else {
-				// 	/* Assume author appears AFTER the testimonials */
-				// 	console.error('AUTHOR AFTER TESTIMONIALS');
-				// 	let testimonialText = texts[firstTestimonialIndex].text;
-				// 	let authorText = '';
-				// 	let id = 0;
-				// 	for(let i=firstTestimonialIndex+1; i<=lastAuthorIndex; i++){
-				// 		//console.log(testimonialText);
-				// 		const text = texts[i].text;
-				// 		//console.log(text);
-				// 		const type = texts[i].type;
-				// 		const lowtext = text.toLowerCase();
-				// 		/* Add each strung testimonial+author when the next testimonial is reached, or if nothing is left.*/
-				// 		if(type == 'testimonial'){
-				// 			id++
-				// 			let testimonial = {
-				// 				id: 'testimonial_'+String(id),
-				// 				text: testimonialText,
-				// 				author: authorText,
-				// 			}
-				// 			testimonials.push(testimonial);
-				// 			authorText = '';
-				// 			testimonialText = text
-				// 		} else if(
-				// 			testimonialText != '' && 
-				// 			!lowtext.includes('thank') && 
-				// 			!lowtext.includes('regard') && 
-				// 			!lowtext.includes('forward') && 
-				// 			!lowtext.includes('wish') && 
-				// 			!lowtext.includes('read more') &&
-				// 			text.length>2
-				// 		) {
-				// 			authorText += `${text} | `
-				// 			if(i==lastAuthorIndex){
-				// 				id++
-				// 				let testimonial = {
-				// 					id: 'testimonial_'+String(id),
-				// 					text: testimonialText,
-				// 					author: authorText,
-				// 				}
-				// 				testimonials.push(testimonial);
-				// 				authorText = '';
-				// 				testimonialText = text
-				// 			}
-				// 		}
-				// 	}
-				// }
-
-				resolve({
-					testimonials:testimonials,
-					testimonialsNoFilter:testimonials,
-				})
-				// let authorPromises = [];
-				// //console.log(texts);
-				// let testimonialText = '';
-				// let id = 0;
-				// //console.log(texts);
-				// //console.log(texts)
-				// console.log(texts);
-
-				// texts.forEach((item,index)=>{
-				// 	const text = item.trim();
-				// 	const lowtext = text.toLowerCase();
-				// 	if(isTestimonial(text)){
-				// 		testimonialText += text;
-				// 	} else if(testimonialText != '' && !lowtext.includes('thank') && !lowtext.includes('regard') && !lowtext.includes('forward') && !lowtext.includes('wish') && text.length>2){
-				// 		let author = text;
-				// 		id++
-
-				// 		let scores = bayes.getClassifications(testimonialText);
-				// 		let testimonial = {
-				// 			'id':'testimonial_'+String(id),
-				// 			'text':testimonialText,
-				// 			'author':author,
-				// 			'scores':scores
-				// 		}
-				// 		const classifications = bayes.getClassifications(testimonialText);
-				// 		const testimonialScore = classifications[0].value;
-				// 		const plainScore = classifications[1].value;
-				// 		const factor = testimonialScore/plainScore;
-				// 		if(factor > 100){
-				// 			testimonialsNoFilter.push(testimonial);
-				// 			if(testimonialFirstPersonFilter(testimonialText)){
-				// 				testimonials.push(testimonial)
-				// 			}
-				// 		}
-				// 		testimonialText = '';
-
-				// 	//	testimonialsNoFilter.push(testimonial);
-				// 	}
-				// })
-
-				// //resolve([testimonials,testimonialsNoFilter]);
-				// resolve({
-				// 	testimonials:testimonials,
-				// 	testimonialsNoFilter:testimonialsNoFilter,
-				// })
-
-				/*
-				texts.forEach((item,index)=>{
-					let text = item.text.toLowerCase();		//Set to lower case to allow for easier manipulation
-					if(isTestimonial(text)){
-						item.class = 'testimonial';
-					} else if(isAuthorPreCheck(text)){		// Attempt to classify as many authors as possible with less accurate method
-						item.class = 'author';
-					} else if(wordCount(text)<9 && text.length > 2){	// Potential authors are between 2 characters and 9 words in length 
-						authorPromises.push(isAuthor(text,index));	// Necessary to use promises as CoreNLP returns a promise
-					}
-				});
 
 
-				Promise.all(authorPromises).then(results=>{	 // Wait for all of the author promises to resolve 
-					results.forEach((item)=>{
-						if(item != ''){
-							let index = item.index
-							texts[index].class='author'; 	//Tag all entities within the array as an author using results from Promise.all
-						}
-					});
-
-					var testimonialTexts = texts.filter((item)=>{	//Flatten array and remove all objects that do NOT contain a testimonial or author class
-						return item.class;	
-					});	
-					console.log(testimonialTexts);
-					let testimonialText = ''
-					let id = 0;
-					//console.log(testimonialTexts);
-					testimonialTexts.forEach((item,index)=>{							// Begin stringing each testimonial together
-						if(item.class == 'testimonial'){								 
-							testimonialText += item.text 								// If a text is a testimonial, add on to the current block of text
-						} else if(item.class == 'author' && testimonialText != ''){     // If a text is an author AND there is a current non-empty block of text, take the current block of text as the full testimonial
-							let author = item.text 	
-							id++														// Simple ID to be added to testimonial for use in DOM			
-							let testimonial = {'id':'testimonial_'+String(id),'text':testimonialText,'author':author}  // The complete testimonial object
-							testimonialText = '';										// Reset the block of text to begin stringing of next testimonial
-							testimonials.push(testimonial);								// Push the full testimonial and author to the testimonials array
-						}
-					});
-					//console.log(vetos);
-					resolve(testimonials);
-
-				}).catch(err => {
-				    console.error('ERROR:', err);
-				});
-				*/
+					resolve({
+						testimonials:testimonials,
+						testimonialsNoFilter:testimonials,
+					})
+				//});
 			}
 		});
 	});
