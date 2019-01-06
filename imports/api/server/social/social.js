@@ -3,7 +3,6 @@ import request from 'request'
 import cheerio from 'cheerio'
 import Parser from 'rss-parser'
 import unfluff from 'unfluff'
-import Future from 'fibers/future';
 //import NewsAPI from 'newsapi'
 
 // const newsapi = new NewsAPI(Meteor.settings.NEWS_API_KEY);
@@ -83,11 +82,16 @@ function getShares(url){
 					reject(err)
 				}
 				//For some reason response is in the format receiveCount({JSON}), so must remove the stuff around it
-				body = body.replace(`receiveCount(`,'');
-				body = body.replace(`)`,'');
-				const json = JSON.parse(body);
-				const pinterestShares = json.count;
-				resolve(pinterestShares);
+				try{
+					body = body.replace(`receiveCount(`,'');
+					body = body.replace(`)`,'');
+					const json = JSON.parse(body);
+					const pinterestShares = json.count;
+					resolve(pinterestShares);
+				}
+				catch(error){
+					reject(error);
+				}
 			})			
 		})
 	}

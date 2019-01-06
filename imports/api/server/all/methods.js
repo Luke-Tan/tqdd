@@ -111,12 +111,12 @@ function nameFromWebsite(url,domainName){
 						copyright = insert(copyright, copyrightIndex-1, ' ')
 					}
 
-					console.log(copyright);
+					//console.log(copyright);
 
 					copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
 					copyright = copyright.filter(word => !(/^\d{4}$/).test(word)) /* Remove all -,@,(,),$,!,#, and years from within the array */
 
-					console.log(copyright)
+					//console.log(copyright)
 
 					/* Hard code in certain words that MAY be found immediately after the copyright marker that is clearly not 
 					the name of the company. We remove this. First noticed in cases like '© 2018 by Clean Lab Pte Ltd' 
@@ -135,16 +135,17 @@ function nameFromWebsite(url,domainName){
 					if(copyright.indexOf('com') != -1){
 						copyright.splice(copyright.indexOf('com'), 0, '.'); 
 					}
-					console.log(copyright);
+					//console.log(copyright);
 
 					const start = copyright.indexOf(copyrightMarker)+1
 
 					let end;
-					const endMarkers = ['pte','all','llc','|']
-					for(let item of endMarkers){
-						if(copyright.includes(item)){
-							end = copyright.indexOf(item)
-							break
+					const endMarkers = ['llp','pte','all','llc','|'];
+
+					for(let word of copyright){
+						if(endMarkers.includes(word)){
+							end = copyright.indexOf(word);
+							break;
 						}
 					}
 					if(end == undefined){

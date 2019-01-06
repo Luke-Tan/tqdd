@@ -1,18 +1,11 @@
 //npm dependancies
 import vision from '@google-cloud/vision';
-import striptags from 'striptags';
 import request from 'request';
 import cheerio from 'cheerio';
 import KGSearch from 'google-kgsearch';
 import url from 'url';
-import Jimp from 'jimp';
-import AWS from 'aws-sdk'
-import multer from 'multer';
-import multerS3 from 'multer-s3';
 
-
-
-/* Global constants */
+/* Global constants */ 
 const logoThreshold = 0.4;		// Confidence threshold to accept/reject a logo from Google Vision
 const blurbThreshold = 40;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
@@ -27,15 +20,6 @@ const client = new vision.ImageAnnotatorClient({
 
 /* Instantiate Google Knowledge Graph */
 const kGraph = KGSearch(Meteor.settings.GOOGLE_API_KEY);
-
-/* Instantiate AWS sdk for S3 */
-
-AWS.config.update({
-    accessKeyId: "AKIAJGLEQXJ2R3DZUKNQ",
-    secretAccessKey: "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"
-});
-
-const s3 = new AWS.S3();
 
 
 /* Functions for loading and preparing of images in base64 buffer to send to google cloud API */

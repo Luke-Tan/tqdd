@@ -24,6 +24,15 @@ export function getDomain(url) {
             if (hostName.toLowerCase().indexOf('.com.sg') != -1 && parts.length > 2) {
               domain = parts[2] + '.' + domain;
             }
+            if (hostName.toLowerCase().indexOf('.edu.sg') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
+            if (hostName.toLowerCase().indexOf('.ac.uk') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
+            if (hostName.toLowerCase().indexOf('.gov.sg') != -1 && parts.length > 2) {
+              domain = parts[2] + '.' + domain;
+            }
         }
     }
     

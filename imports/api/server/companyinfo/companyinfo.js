@@ -116,7 +116,7 @@ Meteor.methods({
 				if(Boolean(companyDetails.logo) == false){
 					/* This logo may or may not be blank, but there is no way to check. 
 					If there is no logo obtained from the above profiles, then fall back to this.*/
-					const clearbitLogo = `https://logo-core.clearbit.com/${domain}`
+					const clearbitLogo = `https://logo-core.clearbit.com/www.${domain}`
 					companyDetails.logo = clearbitLogo;
 				}
 				console.log(companyDetails);
