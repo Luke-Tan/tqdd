@@ -14,3 +14,6 @@ Dependancies for each module:
 6) WordCloud:
 	-Watson Natural Language Understanding (30k matches per month) (Soft limiter as 30k is usually more than enough)
 
+
+
+export NODE_OPTIONS="--max_old_space_size=4096"

@@ -15,8 +15,7 @@ export function getWordCloud(urls, render){
     
     Meteor.call('scrapeText', urls, function(err, result) {
 
-        const cloudWords = result[0];
-        const chartWords = result[1];
+        const { cloudWords , chartWords } = result;
 
         let myChart;
         let labels = [];

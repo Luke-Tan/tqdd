@@ -15,7 +15,11 @@ export default function getJobstreetInfo(url){
 	                if(text == 'Overview'){
 	                    request(url,(err,resp,body)=>{
 	                        $ = cheerio.load(body)
-	                        const logo = $('img._1Cy6lcihWpceLLGB3qdmV1').first().attr('data-cfsrc');
+
+	                        let logo = $('img._1Cy6lcihWpceLLGB3qdmV1').first().attr('data-cfsrc');
+	                        if(Boolean(logo) == false){
+	                        	logo = $('img._1Cy6lcihWpceLLGB3qdmV1').first().attr('src');
+	                        }
 	                        
 	                        const profileDetails = $('div._1qlCWY2bxtwAV57sq3F17P')
 	                        const address = $('address').text();

@@ -1,7 +1,7 @@
 import request from 'request';
 import { filter } from 'fuzzaldrin';
 import cheerio from 'cheerio';
-import url from 'url';
+import nodeUrl from 'url';
 
 import {
 	domainToName 
@@ -20,11 +20,19 @@ function nameFromClearbit(domain){
 			if(err){
 				reject(err)
 			}
-			const json = JSON.parse(body);
-			const result = json[0];
+			let json;
+			let result;
+			try{
+				json = JSON.parse(body);
+				result = json[0];
+			} 
+			catch(error){
+				resolve('');
+				return
+			}
 			if(result != undefined && result.domain == companyDomain){ //Check if the results domain is exactly the same as the domain of the company we are searching. Also checks if there is a result at all.
 	    		const name = result.name;
-				console.log('CLEARBIT '+name)
+				('CLEARBIT '+name)
 	    		resolve(name);
 	    	} else {
 	    		resolve('')
@@ -50,8 +58,10 @@ function nameFromWebsite(url,domainName){
 		    let $ = cheerio.load(body);
 
 		    const title = $('title').text();
-		    const candidates = title.split('|').map(term=>term.trim());
+		    const candidates = title.split(/[:|-]+/).map(term=>term.trim());
+		    console.error(candidates);
 		    const results = filter(candidates, domainName);
+		    console.error(domainName);
 
 		    //Ensure that the resultant name and domainName are somewhat similar in length, since the fuzzy filter does not care for length.
 		    if(results.length != 0 && results[0].length-10 < domainName.length){
@@ -89,20 +99,16 @@ function nameFromWebsite(url,domainName){
 				});
 
 				if(copyright != ''){
-					console.log(copyright);
 					copyright = copyright.trim()
 					copyright = copyright.replace(/ +(?= )/g,''); /* Replace all multi spaces with single spaces */
-					console.log(copyright);
 					copyright = copyright.replace(/(\[.*?\]|\(.*?\)) */g, ""); /* Replace everything contained within brackets (usually contains bullshit)*/ 
 					copyright = copyright.replace(/[-.,@$!#&]/g,' ')	  /* Replace all full stops with empty space */
-					console.log(copyright);
 					copyright = copyright.toLowerCase();		  /* Make the whole thing lower case so that its easy to manipulate */
 
 					/* Add spaces behind and in front of copyrightMarker to isolate it */
 					let copyrightIndex = copyright.indexOf(copyrightMarker);	
 					const startIndex = copyrightIndex 
 					const endIndex = copyrightIndex+(copyrightMarker.length-1)
-					console.log(copyrightIndex);
 					if(copyright[endIndex+1] != ' '){
 						copyright = insert(copyright, copyrightIndex+1, ' ')
 					}
@@ -111,22 +117,28 @@ function nameFromWebsite(url,domainName){
 						copyright = insert(copyright, copyrightIndex-1, ' ')
 					}
 
-					//console.log(copyright);
 
 					copyright = copyright.split(' ');			  /* Split it into the constituent words in an array */ 
 					copyright = copyright.filter(word => !(/^\d{4}$/).test(word)) /* Remove all -,@,(,),$,!,#, and years from within the array */
 
-					//console.log(copyright)
 
 					/* Hard code in certain words that MAY be found immediately after the copyright marker that is clearly not 
 					the name of the company. We remove this. First noticed in cases like '© 2018 by Clean Lab Pte Ltd' 
 					Additional copyright markers may be found, e.g. © Copyright 2018. In this case, it makes sense to remove everything
 					that was NOT used as the initial copyright marker
 					*/
-					const vetoWords = ['by','of','©','copyright','Copyright']
-
-					if(vetoWords.includes(copyright[copyright.indexOf(copyrightMarker)+1])){
-						copyright.splice(copyright.indexOf(copyrightMarker)+1, 1);
+					const vetoWords = ['by','of','©','copyright','Copyright','powered','made',]
+					console.log(copyright);
+					let maxCount = 4
+					for(let i = 1; i < maxCount; i++){
+						const indexOfWordToCheck = copyright.indexOf(copyrightMarker)+i
+						const wordToCheck = copyright[indexOfWordToCheck]
+						console.error(wordToCheck);
+						if(vetoWords.includes(wordToCheck)){
+							copyright.splice(indexOfWordToCheck, 1);
+							i--;
+							maxCount--;
+						}
 					}
 
 					copyright = copyright.filter(word => word != '')
@@ -135,9 +147,9 @@ function nameFromWebsite(url,domainName){
 					if(copyright.indexOf('com') != -1){
 						copyright.splice(copyright.indexOf('com'), 0, '.'); 
 					}
-					//console.log(copyright);
+					//(copyright);
 
-					const start = copyright.indexOf(copyrightMarker)+1
+					let start = copyright.indexOf(copyrightMarker)+1
 
 					let end;
 					const endMarkers = ['llp','pte','all','llc','|'];
@@ -146,6 +158,26 @@ function nameFromWebsite(url,domainName){
 						if(endMarkers.includes(word)){
 							end = copyright.indexOf(word);
 							break;
+						}
+					}
+
+					if(start >= end){
+						end = start-1;
+						if(end > 3){
+							resolve('');
+						} else {
+							start = 0;
+							let name = copyright.slice(start,end);
+							name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+							name = name.toString().replace(/[,]/g,' ');
+							if(Boolean(name) != false){
+								('COPYRIGHT TO NAME '+name)
+								resolve(name)
+								return
+							} else {
+								resolve('')		
+								return						
+							}
 						}
 					}
 					if(end == undefined){
@@ -157,7 +189,7 @@ function nameFromWebsite(url,domainName){
 					name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
 					name = name.toString().replace(/[,]/g,' ');
 					if(Boolean(name) != false){
-						console.log('COPYRIGHT TO NAME '+name)
+						('COPYRIGHT TO NAME '+name)
 						resolve(name)
 						return
 					} else {
@@ -189,7 +221,7 @@ Meteor.methods({
 	checkForValidUrl(url){
 		return new Promise((resolve,reject)=>{
 			request({url:url, timeout:15000},function(err,resp,body){
-			//console.log(resp.statusCode)
+			//(resp.statusCode)
 				if(!err && resp.statusCode ==200){
 					resolve(true)
 				} else {
@@ -202,32 +234,41 @@ Meteor.methods({
 			});
 		})
 	},
-	getUrls(url,bareUrl){
-		if(url.slice(0, -1) != '/'){
-			url += '/';
-		}
+	getUrls(url){
 		return new Promise((resolve,reject)=>{
 			request(url,function(err,resp,body){
 				if(err){
 					reject(err);
 				} else {
 					$ = cheerio.load(body);
-					let links = $('a');
-					let linksArray = [];
-					$(links).each(function(i, link){
+					let urls = [];
+					$('a').each(function(i, link){
 						let href = $(link).attr('href');
 						if(href !== undefined){
-							if(href.charAt(0)=='/'){
-								href = url.slice(0, -1)+href;
+							const hrefLowerCase = href.toLowerCase();
+							if(href[href.length -1] == '/'){
+								href = href.slice(0, -1);
 							}
-							if(href.includes(bareUrl)){
-								if(!linksArray.includes(href)){
-									linksArray.push(href);
-								}
+							// const link = nodeurl.format({
+							//   protocol: 'http',
+							//   hostname: url,
+							//   pathname: href
+							// });
+							const link = nodeUrl.resolve(url,href);
+							/* 
+								Consider all urls that contain the word 'testimonial' inside is a valid link with testimonials
+								Reject urls that contain a '#'' as it just points to the home page and we dont want to make excess queries
+								Reject urls that are already inside the array in case there are multiple urls pointing to the same url 
+							*/
+							if(
+								!(hrefLowerCase.includes('#')) && 
+								!(urls.includes(link))
+							) {
+								urls.push(link);
 							}
 						}
 					});
-					resolve(linksArray);
+					resolve(urls);
 				}
 			})
 		});
@@ -237,6 +278,8 @@ Meteor.methods({
 		// 2. Copyright
 		// 3. URL
 		const domainName = nameFromDomain(domain);
+		console.error(domain);
+		console.error(domainName);
 		return new Promise(async (resolve,reject)=>{
 			let name = await nameFromClearbit(domain);
 			if(name == ''){

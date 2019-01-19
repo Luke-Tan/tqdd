@@ -4,11 +4,21 @@ import cheerio from 'cheerio';
 import request from 'request';
 import nodeurl from 'url';
 import nlp from 'compromise';
-import { testimonialData, plainData } from './trainingdata.js';
+//import { testimonialData, plainData } from './trainingdata.js';
+// import { testimonialData } from './incrementTestimonialTrain.js';
+// import { plainData } from './incrementPlainTraining.js';
 import language from '@google-cloud/language';
-import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
+//import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
 import pd from 'paralleldots';
-import logistic_classifier from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier.json'
+
+//import logistic_classifier from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier.json';
+// import logistic_classifier_2 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_2.json';
+// import logistic_classifier_3 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_3.json';
+//import logistic_classifier_5 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_5.json';
+
+
+// import { testData } from './testdata.js';
+// import { plainTestData } from './testplaindata.js'
 
 /*Internal modules*/
 import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositives, falsePositives } from '../../both/collections/TestimonialCollection.js';
@@ -17,13 +27,13 @@ import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositiv
 pd.apiKey = "l6SW7NUATYudvEHJE1dgWvg0AZACODHjGm65vH43Es8";
 
 /* Instantiate coreNLP server */
-const props = new Properties({
-  annotators: 'ner',
-});
+// const props = new Properties({
+//   annotators: 'ner',
+// });
 
-const connector = new ConnectorServer({ dsn: 'https://fast-crag-55472.herokuapp.com/' });	// URL of internally set up stanford CoreNLP server
+// const connector = new ConnectorServer({ dsn: 'https://fast-crag-55472.herokuapp.com/' });	// URL of internally set up stanford CoreNLP server
 
-const pipeline = new Pipeline(props, 'English', connector);
+// const pipeline = new Pipeline(props, 'English', connector);
 
 /* Instantiates Google Cloud Natural Language client */
 const client = new language.LanguageServiceClient({
@@ -34,9 +44,16 @@ const client = new language.LanguageServiceClient({
 	}
 });
 
-//let bayes = new natural.BayesClassifier();
 
-// let bayes = new natural.LogisticRegressionClassifier();
+
+// const oldClassifier = natural.LogisticRegressionClassifier.restore((logistic_classifier));
+// const newClassifier = natural.LogisticRegressionClassifier.restore((new_logistic_classifier));
+//let classifier = natural.LogisticRegressionClassifier.restore(logistic_classifier_5);
+
+
+//let classifier = new natural.BayesClassifier();
+
+ //let classifier = new natural.LogisticRegressionClassifier();
 
 // const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
 
@@ -44,29 +61,125 @@ const client = new language.LanguageServiceClient({
 
 
 // testimonialUserData.forEach((testimonial)=>{
-// 	bayes.addDocument(testimonial.text,'testimonial');
+// 	classifier.addDocument(testimonial.text,'testimonial');
 // })
 
 // testimonialData.forEach((testimonial)=>{
-// 	bayes.addDocument(testimonial,'testimonial');
-// 	//bayes.addDocument(testimonial,'testimonial');
+// 	classifier.addDocument(testimonial,'testimonial');
+	
 // });
 
 // plainData.forEach((plain)=>{
-// 	bayes.addDocument(plain,'plain');
-// 	//bayes.addDocument(doc,'plain');
+// 	classifier.addDocument(plain,'plain');
+	
 // });
 
 // plainUserData.forEach((plain)=>{
-// 	bayes.addDocument(plain.text,'plain')
+// 	classifier.addDocument(plain.text,'plain')
 // })
 
-// bayes.train();
+//classifier.train();
+
+// natural.LogisticRegressionClassifier.load(Assets.absoluteFilePath('logistic_classifier_4.json'), null, function(err, classifier) {
+// 	if(err){
+// 		console.log(err);
+// 	}
+// 	let plainScore0 = 0;
+// 	let plainScore2 = 0;
+// 	let plainScore10 = 0;
+// 	let plainScore50 = 0;
+// 	let plainScore100 = 0
+// 	let scoreFilter0 = 0
+// 	let scoreFilter2 = 0;
+// 	let scoreFilter10 = 0;
+// 	let scoreFilter50 = 0;
+// 	let scoreFilter100 = 0
 
 
-// bayes.save('classifier.json', function(err, classifier) {
-    
+
+// 	//console.log(classifier.classify(``))
+// 	plainTestData.forEach(text=>{
+// 		if(classifier.classify(text) == 'plain'){
+// 			// const classifications = classifier.getClassifications(text);
+// 			// const testimonialScore = classifications[0].value;
+// 			// const plainScore = classifications[1].value;
+// 			// const factor = testimonialScore/plainScore;
+// 			// if(factor > 100){
+// 			// 	oldScoreFilter++
+// 			// }
+
+// 			plainScore0++
+// 			plainScore2++
+// 			plainScore10++
+// 			plainScore50++
+// 			plainScore100++
+// 		} else {
+// 			const classifications = classifier.getClassifications(text);
+// 			const testimonialScore = classifications[0].value;
+// 			const plainScore = classifications[1].value;
+// 			const factor = testimonialScore/plainScore;
+// 			if(factor < 100){
+// 				plainScore100++
+// 			} 
+// 			if(factor < 50){
+// 				plainScore50++
+// 			} 
+// 			if(factor<10){
+// 				plainScore10++
+// 			}  
+// 			if(factor<2){
+// 				plainScore2++
+// 			}
+// 		}
+
+// 	})
+
+// 	testData.forEach(text=>{
+// 		if(classifier.classify(text) == 'testimonial'){
+// 			const classifications = classifier.getClassifications(text);
+// 			const testimonialScore = classifications[0].value;
+// 			const plainScore = classifications[1].value;
+// 			const factor = testimonialScore/plainScore;
+// 			if(factor > 100){
+// 				scoreFilter100++
+// 			} 
+// 			if(factor > 50){
+// 				scoreFilter50++
+// 			} 
+// 			if(factor>10){
+// 				scoreFilter10++
+// 			}  
+// 			if(factor>2){
+// 				scoreFilter2++
+// 			}
+// 			scoreFilter0++
+// 		}
+
+// 	})
+// 	console.log(`Classifier 5 scored ${plainScore0}/200 for the plain data test (no filter)`);
+// 	console.log(`Classifier 5 scored ${plainScore2}/200 for the plain data test (filter 2)`);
+// 	console.log(`Classifier 5 scored ${plainScore10}/200 for the plain data test (filter 10)`);
+// 	console.log(`Classifier 5 scored ${plainScore50}/200 for the plain data test (filter 50)`);
+// 	console.log(`Classifier 5 scored ${plainScore100}/200 for the plain data test (filter 100)`);
+// 	console.log(`Classifier 5 scored ${scoreFilter0}/200 for the testimonial data test (no filter)`);
+// 	console.log(`Classifier 5 scored ${scoreFilter2}/200 for the testimonial data test (filter 2)`);
+// 	console.log(`Classifier 5 scored ${scoreFilter10}/200 for the testimonial data test (filter 10)`);
+// 	console.log(`Classifier 5 scored ${scoreFilter50}/200 for the testimonial data test (filter 50)`);
+// 	console.log(`Classifier 5 scored ${scoreFilter100}/200 for the testimonial data test (filter 100)`);
+
 // });
+
+
+//console.log(`Bayes New classifier scored ${oldScoreFilter} with filter`)
+//console.log(`Bayes New classifier scored ${oldScore} without filter`)
+// console.log(`New classifier scored ${newScoreFilter} with filter`)
+// console.log(`New classifier scored ${newScore} without filter`)
+
+
+// classifier.save('logistic_classifier_5.json', function(err, classifier) {
+//     console.log('classifier saved!');
+// });
+
 /* Agnostic functions */
 function wordCount(str) {
 	if(typeof(str)=='string'){
@@ -111,11 +224,15 @@ function getAllIndexes(arr, val) {
 
 function getDistances(arrayOfIndexes) {
 	const arr = arrayOfIndexes;
+	if(arr.length == 1){
+		return {
+			maxDistance: 2,
+			minDistance: 1,
+		}
+	}
 	let minDistance = Infinity;
 	let maxDistance = 0;
 	const reversedArray = arrayOfIndexes.reverse();
-	console.log(arrayOfIndexes);
-	console.log(reversedArray);
 	let prevNumber;
 	let currentNumber;
 	reversedArray.forEach((index)=>{
@@ -188,7 +305,7 @@ async function isAuthor(text){
 	// 	    	}
 	// 	    });
 	// 	    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
-	// 	    	console.log(text +' PASSED');
+	//
 	// 	    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
 	// 	    } else {
 	// 	    	console.error(text+' FAILED')
@@ -273,7 +390,6 @@ async function authorScore(text){
 	        const entities = (JSON.parse(response)).entities;
 	        let score = 0;
 	        entities.forEach(entity => {
-	        	console.log(entity);
 	        	const category = entity.category;
 	        	const confidence = entity.confidence_score
 	        	if(category == 'name'){
@@ -289,20 +405,18 @@ async function authorScore(text){
 	        return score;
 	    })
 	    .catch((error) => {
-	        //console.log(error);
+	        //
 	        return 0;
     })
 	return result;
 }
 
 async function batchAuthorScore(arr){
-	console.log(arr);
 	const text_array = JSON.stringify(arr);
 	const result = await pd.nerBatch(text_array)
 	 	.then((response) => {
 	 		const score_array = []
 	        const everything = (JSON.parse(response)).entities;
-	        console.log(everything);
 	        everything.forEach(entities=>{
 	        	let score = 0;
 	        	entities.forEach(entity=>{
@@ -323,7 +437,6 @@ async function batchAuthorScore(arr){
 	        return score_array;
 	    })
 	    .catch((error) =>{
-	        console.log(error);
 	        return [];
 	    });
 	return result;
@@ -377,10 +490,11 @@ function testimonialFirstPersonFilter(text){
 
 async function getTestimonials(links){
 	let promises = [];
-	console.log(links);
 	links.forEach(link=>{
 		promises.push(classifyTestimonials(link).then(results=>{
 			return results;
+		}).catch(error=>{
+			console.error(error);
 		}));
 	});
 	const testimonials = await Promise.all(promises);
@@ -394,8 +508,7 @@ function classifyTestimonials(link){
 				reject(err);
 			}
 			if(!err && resp.statusCode == 200){
-				// natural.LogisticRegressionClassifier.load(JSON.parse(logistic_classifier), null, async function(err, classifier) {
-					const classifier = natural.LogisticRegressionClassifier.restore((logistic_classifier));
+				natural.LogisticRegressionClassifier.load(Assets.absoluteFilePath('logistic_classifier_5.json'), null, async function(err, classifier) {
 					let $ = cheerio.load(body);
 					let texts = [];
 					let testimonials = [];
@@ -427,7 +540,7 @@ function classifyTestimonials(link){
 							text = $(element).first().contents().filter(function() {
 							    return this.type === 'text';
 							}).text().trim();	
-							//console.log(text);
+							//
 						} else {
 							text = $(element).text().trim();		// Get text of the element
 						} 
@@ -454,11 +567,10 @@ function classifyTestimonials(link){
 					}
 
 					const { maxDistance , minDistance } = getDistances(testimonialIndexes);
-					//console.log(testimonialIndexes);
+					//
 					console.error(`MIN DISTANCE IS ${minDistance}`);
 					let firstTestimonialIndex = Math.min(...testimonialIndexes);
 					let lastTestimonialIndex = Math.max(...testimonialIndexes);
-					console.log(maxDistance);
 
 					let start = firstTestimonialIndex-maxDistance;
 
@@ -497,7 +609,8 @@ function classifyTestimonials(link){
 
 
 					let slicedTexts = texts.slice(start,end+1);
-					console.log(slicedTexts);
+					console.log(start)
+					console.log(end)
 
 
 					if(authorBeforeTestimonialSum <= authorAfterTestimonialSum){
@@ -524,9 +637,13 @@ function classifyTestimonials(link){
 							const testimonialText = texts[index].text;
 							let author = ''
 							let authorCounter = 0;
+							let suspectedTestimonials = 0;
 							for(let i = 1; i<=maxDistance; i++){
 								const authorIndex = index-i
-								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
+								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex) || author != '' && suspectedTestimonials > 0){
+									if(testimonialIndexes.includes(authorIndex)){
+										console.log('breakING')
+									}
 									break;
 								}
 								const authorText = texts[authorIndex].text;
@@ -536,13 +653,18 @@ function classifyTestimonials(link){
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
 									!lowAuthorText.includes('wish') &&
-									!lowAuthorText.includes('read more') &&
+									!lowAuthorText.includes('more') &&
+									!lowAuthorText.includes('testimonial') &&
+									!lowAuthorText.includes('want') &&
+									!lowAuthorText.includes('sign up') &&
 									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
 									authorCounter < minDistance &&
-									lowerAuthorText.length>2
+									lowAuthorText.length>2
 								) {
 									authorCounter++;
 									author += `${authorText} | `
+								} else {
+									suspectedTestimonials++
 								}
 
 							}
@@ -561,9 +683,10 @@ function classifyTestimonials(link){
 							const testimonialText = texts[index].text;
 							let author = ''
 							let authorCounter = 0;
+							let suspectedTestimonials = 0;
 							for(let i = 1; i<=maxDistance; i++){
 								const authorIndex = index+i
-								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex)){
+								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex) || author != '' && suspectedTestimonials > 0){
 									break;
 								}
 								const authorText = texts[authorIndex].text;
@@ -573,13 +696,18 @@ function classifyTestimonials(link){
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
 									!lowAuthorText.includes('wish') &&
-									!lowAuthorText.includes('read more') &&
+									!lowAuthorText.includes('more') &&
+									!lowAuthorText.includes('testimonial') &&
+									!lowAuthorText.includes('want') &&
+									!lowAuthorText.includes('sign up') &&
 									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
 									lowAuthorText.length>2 &&
 									authorCounter < minDistance
 								) {
 									authorCounter++;
 									author += `${authorText} | `
+								} else {
+									suspectedTestimonials++
 								}
 							}
 							const testimonial = {
@@ -596,7 +724,7 @@ function classifyTestimonials(link){
 						testimonials:testimonials,
 						testimonialsNoFilter:testimonials,
 					})
-				//});
+				});
 			}
 		});
 	});

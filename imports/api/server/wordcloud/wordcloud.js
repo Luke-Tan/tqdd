@@ -52,7 +52,11 @@ function analyze(params) {
 						chartList.push({'text':text,'weight':freq});
 					}
 				}
-				resolve([cloudList,chartList]);
+				
+				resolve({
+					cloudList: cloudList,
+					chartList: chartList
+				})
 			}
 		});
     });

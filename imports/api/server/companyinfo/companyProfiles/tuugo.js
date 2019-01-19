@@ -12,17 +12,20 @@ export default function getTuugoInfo(name){
                     try{
                         let $ = cheerio.load(body);
                         let href = $('.item_lnk').first().attr('href')
+                        let linkName = $('.item_lnk').first().text();
+                        if(linkName.toLowerCase().includes(name.toLowerCase())){
                         let tuugoProfile = nodeUrl.resolve('https://www.tuugo.sg',href);
-                        request(tuugoProfile,(err,resp,body)=>{
-                            let $ = cheerio.load(body);
-                            const phone = $('.company_phone').text().replace(/[a-zA-Z.]/g,'').trim();
-                            const address = $('.address').text();
-                            const companyProfile = {
-                                phone:phone,
-                                address:address
-                            }
-                            resolve(companyProfile);
-                        })
+                            request(tuugoProfile,(err,resp,body)=>{
+                                let $ = cheerio.load(body);
+                                const phone = $('.company_phone').text().replace(/[a-zA-Z.]/g,'').trim();
+                                const address = $('.address').text();
+                                const companyProfile = {
+                                    phone:phone,
+                                    address:address
+                                }
+                                resolve(companyProfile);
+                            })
+                        }
                     }
                     catch(error){
                         console.error(error);

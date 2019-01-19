@@ -12,7 +12,6 @@
     "babel-runtime": "^6.26.0",
     "change-case": "^3.0.2",
     "compromise": "^11.6.0",
-    "corenlp": "^1.4.2",
     "fibers": "^2.0.0",
     "fs-path": "0.0.24",
     "fuzzaldrin": "^2.1.0",

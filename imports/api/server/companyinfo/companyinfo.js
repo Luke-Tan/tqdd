@@ -14,7 +14,7 @@ import {
 
 import getJobstreetInfo from '/imports/api/server/companyinfo/companyProfiles/jobstreet.js';
 import getKompassInfo from '/imports/api/server/companyinfo/companyProfiles/kompass.js';
-import getRecommendSgInfo from '/imports/api/server/companyinfo/companyProfiles/recommendsg.js';
+//import getRecommendSgInfo from '/imports/api/server/companyinfo/companyProfiles/recommendsg.js';
 import getYeluSgInfo from '/imports/api/server/companyinfo/companyProfiles/yelusg.js';
 import getZipleafInfo from '/imports/api/server/companyinfo/companyProfiles/zipleaf.js';
 import getTuugoInfo from '/imports/api/server/companyinfo/companyProfiles/tuugo.js';
@@ -37,8 +37,8 @@ Meteor.methods({
 				phone:''
 			}
 
-			const key = `AIzaSyD2mj2BjNyYUkNCrJJ3Rwx6ZuxyfkELpX4`;
-			const cx = `004951682930566350351:14cirkszqh4`
+			const key = `AIzaSyD2mj2BjNyYUkNCrJJ3Rwx6ZuxyfkELpX4`; //api key
+			const cx = `004951682930566350351:14cirkszqh4`	//search engine key
 			const googleSearchEndpoint = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${name}`
 
 			request(googleSearchEndpoint, async (err,resp,body)=>{
@@ -86,7 +86,7 @@ Meteor.methods({
 
 				const kompassInfo = await getKompassInfo(kompassUrl,domain);
 				const jobstreetInfo = await getJobstreetInfo(jobStreetUrl);
-				const recommendSgInfo = await getRecommendSgInfo(name);
+				//const recommendSgInfo = await getRecommendSgInfo(name);
 				const yeluSgInfo = await getYeluSgInfo(yeluUrl);
 				const zipleafInfo = await getZipleafInfo(name);
 				const tuugoInfo = await getTuugoInfo(name);
@@ -96,7 +96,7 @@ Meteor.methods({
 				let listInfo = [
 					kompassInfo,
 					jobstreetInfo,
-					recommendSgInfo,
+					//recommendSgInfo,
 					yeluSgInfo,
 					zipleafInfo,
 					tuugoInfo
@@ -118,6 +118,17 @@ Meteor.methods({
 					If there is no logo obtained from the above profiles, then fall back to this.*/
 					const clearbitLogo = `https://logo-core.clearbit.com/www.${domain}`
 					companyDetails.logo = clearbitLogo;
+				}
+
+				//If we can't find ANYTHING, use full contact while we can I guess?
+				if(
+					Boolean(companyDetails.year) == false &&
+					Boolean(companyDetails.employees) == false &&
+					Boolean(companyDetails.address) == false &&
+					Boolean(companyDetails.phone) == false
+				) {
+					console.error('USING FULL CONTACT')
+					companyDetails = await getFullContactInfo(domain);
 				}
 				console.log(companyDetails);
 				resolve(companyDetails);

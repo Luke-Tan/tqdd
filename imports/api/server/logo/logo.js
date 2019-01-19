@@ -3,11 +3,11 @@ import vision from '@google-cloud/vision';
 import request from 'request';
 import cheerio from 'cheerio';
 import KGSearch from 'google-kgsearch';
-import url from 'url';
+import nodeUrl from 'url';
 
 /* Global constants */ 
-const logoThreshold = 0.4;		// Confidence threshold to accept/reject a logo from Google Vision
-const blurbThreshold = 40;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
+const logoThreshold = 0;		// Confidence threshold to accept/reject a logo from Google Vision
+const blurbThreshold = 50;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
 /* Instantiate Google Vision Client */
 const client = new vision.ImageAnnotatorClient({
@@ -49,6 +49,7 @@ async function getImagesAsBase64(images){
 		promises.push(loadAsync(image).then(results =>{
 			return {'src':image,'data':results};
 		}).catch(err=>{
+			console.log('LOL');
 			return undefined;
 		}));
 	});
@@ -56,51 +57,66 @@ async function getImagesAsBase64(images){
 	return imagesAsBase64;
 }
 
-function loadImages(address){
-    return new Promise(function(resolve,reject){
-		request(address,function(err,resp,body){
-			let imgsArray = [];
-			if(err){
-				reject(err);
-			}
-			$ = cheerio.load(body);
-			var imgs = $('img');
-			$(imgs).each(function(i,img){
+async function loadImages(urls){
+	let promises = [];
+	//console.log(urls);
+	urls.forEach(url=>{
+		let imagesFromUrl = new Promise((resolve,reject)=>{
+			request(url,function(err,resp,body){
+				let imgsArray = [];
+				if(err){
+					reject(err);
+				}
+				$ = cheerio.load(body);
+				var imgs = $('img');
+				$(imgs).each(function(i,img){
 
-				let src = img.attribs.src;
+					let src = img.attribs.src;
 
-				if(src == undefined){
-					//console.log(img.attribs);
-					let srcBreak = false;
-					Object.entries(img.attribs).forEach(
-					    ([key, value]) => {
-							if(key.includes('src') || key.includes('data')){ //Look for possible src or data attributes to find img URL
-								if(srcBreak == false){
-									src = img.attribs[key];
-									srcBreak = true; //Artificially break loop when first instance of 'src' or 'data' is found
-									//console.log(src);
-								}
-					        }
+					if(src == undefined){
+						//console.log(img.attribs);
+						let srcBreak = false;
+						Object.entries(img.attribs).forEach(
+						    ([key, value]) => {
+								if(key.includes('src') || key.includes('data')){ //Look for possible src or data attributes to find img URL
+									if(srcBreak == false){
+										src = img.attribs[key];
+										srcBreak = true; //Artificially break loop when first instance of 'src' or 'data' is found
+										//console.log(src);
+									}
+						        }
+							}
+						);				
+					}
+
+					/*
+
+					INCLUDE CHECK TO OBTAIN FIRST URL IF SRC IS A SRCSET!!!
+
+					*/
+
+					//If src is still undefined, do NOT attempt to resolve
+					if(src != undefined){
+						try{
+							let imgAddress = nodeUrl.resolve(url, src);
+							imgsArray.push(imgAddress);
 						}
-					);				
-				}
+						catch(error){
+							console.error(error);
+						}
+					}
 
-				/*
+				})
+				resolve(imgsArray);
+			});  
+		})  
+		promises.push(imagesFromUrl);   
+	})
 
-				INCLUDE CHECK TO OBTAIN FIRST URL IF SRC IS A SRCSET!!!
-
-				*/
-
-				//If src is still undefined, do NOT attempt to resolve
-				if(src != undefined){
-					let imgAddress = url.resolve(address, src);
-					imgsArray.push(imgAddress);
-				}
-
-			})
-			resolve(imgsArray);
-		});       
-    });	
+	//Flatten to a single array with depth = 1
+	const allImages = await Promise.all(promises).then((result)=>{return result}).catch((err)=>{return []});
+	const allImagesFlattened = [].concat.apply([], allImages);
+	return allImagesFlattened;
 }
 
 function getDescription(params){
@@ -124,27 +140,45 @@ function getDescription(params){
 	});
 }
 
+function removeDuplicates(originalArray, prop) {
+     var newArray = [];
+     var lookupObject  = {};
+
+     for(var i in originalArray) {
+        lookupObject[originalArray[i][prop]] = originalArray[i];
+     }
+
+     for(i in lookupObject) {
+         newArray.push(lookupObject[i]);
+     }
+      return newArray;
+ }
+
 //google.resultsPerPage = 1;
 
 /* Methods to be called by client to scrape for images */
 Meteor.methods({
-	async scrapeLogos(url){
+	async scrapeLogos(mainUrl, urls){
 		//Set URL for imagescraper to scrape
 		//imageScraper.address = url;
-
-		//const images = await imageScraper.scrapeAsync(50000);
-		const images = await loadImages(url);
+		//console.log(urls);
+		// let clientUrls = urls.filter(url => {url.includes('client') || url.includes('portfolio')});;
+		let clientUrls= urls.filter(url => {
+		    if (url.includes('client') || url.includes('portfolio')){
+		    	return true;
+		    } else {
+		    	return false
+		    }
+		});
+		clientUrls.push(mainUrl);
+		const images = await loadImages(clientUrls);
 		let uniqueImages = Array.from(new Set(images));
-		//console.log(uniqueImages);
 		let uniqueImagesBase64 = await getImagesAsBase64(uniqueImages);
-		//console.log(uniqueImagesBase64);
-
 		let promises = [];
 
 		uniqueImagesBase64.forEach(image => {
 			// DO NOT await here for each individual Promise, or you will chain
 			// your execution instead of executing them in parallel
-			//console.log(image);
 			if(image != undefined){
 				promises.push(client.logoDetection(image.data).then(results => {
 				    const logos = results[0].logoAnnotations;
@@ -153,18 +187,7 @@ Meteor.methods({
 				    	if(logos.length > 1){
 				    		let logoSet = [];
 				    		logos.forEach(logo =>{
-
 				    			if(logo.score>logoThreshold){
-					    			// const boundingPoly = logo.boundingPoly.vertices;
-					    			// const topLeft = boundingPoly[0];
-					    			// const bottomRight = boundingPoly[2];
-					    			// const x1 = topLeft.x;
-					    			// const y1 = topLeft.y;
-					    			// const x2 = bottomRight.x;
-					    			// const y2 = bottomRight.y;
-
-					    			// const height = y2-y1;
-					    			// const width = x2-x1;
 					    			let name = logo.description;
 									let params = {
 									  query: name,
@@ -172,36 +195,7 @@ Meteor.methods({
 									  limit: 1
 									}
 									let description = getDescription(params).await();
-									logoSet.push({'name':name,'description':description});
-									// Jimp.read(image).then(async img=>{
-									//     const croppedImage = img.crop(x1-100,y1-100,width+200,height+200).getBufferAsync("image/png")
-									//     console.log(await croppedImage)
-
-					    // 				let name = logo.description;
-									// 	let params = {
-									// 	  query: name,
-									// 	  types: 'Organization',
-									// 	  limit: 1
-									// 	}
-									// 	let description = getDescription(params).await();
-						   //  			// let keyword = logo.description.replace(/ /g,'');
-						   //  			// let logoInfo = Scrape.wikipedia(keyword, 'en');
-						   //  			// let description = striptags(logoInfo.summary);
-						   //  			if(description == ''){
-						   //  				description = "";
-						   //  			}
-
-									//     //Upload croppedImage to S3, get URL => url
-									//     //logosArray.push({'name':name,'src':S3url, 'description':description,multilogo:false})
-
-						   //  			//console.log(logo.description+logo.score);
-						   //  			logoSet.push({'name':name,'description':description});
-									    
-									// }).catch(err=>{
-									//     console.log(err)
-									// });
-
-
+									logoSet.push({'name':name,'description':description,'score':logo.score});
 				    			}
 				    		});
 									    		
@@ -210,7 +204,6 @@ Meteor.methods({
 				    		logosArray.push({'logoset':logoSet,'src':image.src, 'multilogo':true});
 				    	} else if(logos.length == 1) {
 				    		logos.forEach(logo => {
-				    			//console.log(logo.score+logo.description)
 				    			if(logo.score>logoThreshold){
 				    				let name = logo.description;
 									let params = {
@@ -219,17 +212,10 @@ Meteor.methods({
 									  limit: 1
 									}
 									let description = getDescription(params).await();
-
-					    			// let keyword = logo.description.replace(/ /g,'');
-					    			// let logoInfo = Scrape.wikipedia(keyword, 'en');
-					    			// let description = striptags(logoInfo.summary);
 					    			if(description == ''){
 					    				description = "";
 					    			}
-					    			const checkIfLogoInArray = logo => logo.name === name;
-					    			if(!logosArray.some(checkIfLogoInArray)){
-					    				logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false});
-					    			}
+				    				logosArray.push({'name':name,'src':image.src, 'description':description, 'multilogo':false, 'score':logo.score});
 					    		}
 					    	});
 				    	}
@@ -238,14 +224,17 @@ Meteor.methods({
 				    	return [];
 				    }
 				}).catch(err=>{
+					console.error(err);
 					return [];
 				}));
 			}
 		});
 		// Now we can await for the Promise.all.
 		const resultPerImage = await Promise.all(promises);
-		return resultPerImage.reduce((accumulator, imageLogosDescriptions) => {
+		const reducedLogos = resultPerImage.reduce((accumulator, imageLogosDescriptions) => {
 		  return accumulator.concat(imageLogosDescriptions);
 		}, []);
+		const imagesNoDupes = removeDuplicates(reducedLogos,'src');
+		return imagesNoDupes;
 	},
 });

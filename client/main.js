@@ -176,26 +176,29 @@ Template.main.events({
             //     //Make all preloaders invisible
             //     $("#whois-preloader").addClass('invisible');
             // });
+            Meteor.call('getUrls', fullUrl, (err,result)=>{
+                let urls = result;
+                getLogos(fullUrl, urls, () =>{
+                    //Make all preloaders invisible
+                    $('#logos-preloader').addClass('invisible');    
+                });
 
-            // getLogos(fullUrl, () =>{
-            //     //Make all preloaders invisible
-            //     $('#logos-preloader').addClass('invisible');    
-            // });
+                getTestimonials(fullUrl, ()=>{
+                    $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
+                    $("#testimonialsNoFilter-preloader").addClass('invisible'); // Make all preloaders invisible
+                    $('.collapsible').collapsible({
+                        accordion:false,
+                    }); // Initialize the Materialize collapsible
 
-            getTestimonials(fullUrl, ()=>{
-                $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-                $("#testimonialsNoFilter-preloader").addClass('invisible'); // Make all preloaders invisible
-                $('.collapsible').collapsible({
-                    accordion:false,
-                }); // Initialize the Materialize collapsible
+                    let length = Session.get('testimonialsNoFilter').length;
+                    setTimeout(function(){                
+                        for(let i=0;i<length;i++){
+                        $('.collapsible').collapsible('open', i);
+                    }}, 500);
 
-                let length = Session.get('testimonialsNoFilter').length;
-                setTimeout(function(){                
-                    for(let i=0;i<length;i++){
-                    $('.collapsible').collapsible('open', i);
-                }}, 500);
+                });
+            })
 
-            });
 
             //Meteor.call('getData');
         }

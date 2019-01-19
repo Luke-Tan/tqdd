@@ -3,9 +3,6 @@ import request from 'request'
 import cheerio from 'cheerio'
 import Parser from 'rss-parser'
 import unfluff from 'unfluff'
-//import NewsAPI from 'newsapi'
-
-// const newsapi = new NewsAPI(Meteor.settings.NEWS_API_KEY);
 
 import {
 	domainToName,
@@ -27,35 +24,8 @@ function getAllIndexes(arr, val) {
     return indexes;
 }
 
-function validNews(url,name){
-	return new Promise((resolve,reject)=>{
-		request(url,(err,resp,body)=>{
-			if(err){
-				reject(err)
-			}
-			const text = unfluff(body).text;
-			
-		})
-	})
-}
-
 function getMentions(name,country){
 	return new Promise((resolve,reject)=>{
-		// const googleUrl = `https://www.google.com.sg/search?q=%22${name}%22 ${country}`;
-		// request(googleUrl,(err,resp,body)=>{
-		// 	if(err){
-		// 		reject(err)
-		// 	}
-		// 	let $ = cheerio.load(body);
-		// 	let mentions = $('#resultStats').text();
-		// 	 //Mentions will be in the format "About XXX results, so we need to extract the number only"`
-		// 	mentions = mentions.replace('About ','');
-		// 	mentions = mentions.replace(' results','');
-		// 	if(Boolean(mentions) == false){
-		// 		console.log(body);
-		// 	}
-		// 	resolve(mentions);
-		// })
 		resolve('9000')
 	})
 }
@@ -97,24 +67,6 @@ function getShares(url){
 	}
 	function getStumbles(url){
 		return new Promise((resolve,reject)=>{
-			// const stumbledEndPoint = `http://www.stumbleupon.com/services/1.01/badge.getinfo?url=${url}`
-			// request(stumbledEndPoint,(err,resp,body)=>{
-			// 	if(err){
-			// 		reject(err)
-			// 	}
-			// 	console.log(body);
-			// 	let stumbledShares
-			// 	if(resp.statusCode == 200){
-			// 		const json = JSON.parse(body);
-			// 		stumbledShares = json.result.views;
-			// 		if(stumbledShares == undefined){
-			// 			stumbledShares = 0;
-			// 		}
-			// 	} else {
-			// 		stumbledShares = 0;
-			// 	}
-			// 	resolve(stumbledShares);
-			// })	
 			resolve(0)	
 		})
 	}
@@ -141,6 +93,7 @@ function getShares(url){
 
 function getNews(name,country,domain){
 	return new Promise(async (resolve,reject)=>{
+		console.log(country);
 		const countryMarkers = [
 			'sg',
 			'singapore',
@@ -192,16 +145,18 @@ function getNews(name,country,domain){
 			
 		// }
 
-		let googleRSSfeed;
+		let searchTerm;
 		if(countryMarker != undefined){
-			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${countryMarker}&hl=en-SG&gl=SG&ceid=SG:en` 
-		} else if(country != undefined){
-			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}" ${country}&hl=en-SG&gl=SG&ceid=SG:en` 
+			searchTerm = `"${name}" ${countryMarker}`
+		} else if(country != undefined){ 
+			searchTerm = `"${name}" ${country}`
 		} else {
-			googleRSSfeed = `https://news.google.com/_/rss/search?q="${name}"&hl=en-SG&gl=SG&ceid=SG:en` 
+			searchTerm = `"${name}"`
 		}
 
-		//const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
+		//const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en`
+		console.log(searchTerm); 
+		const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
 		const googleRSSfeedDomain = `https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en` 
 		let parser = new Parser();
 
@@ -241,7 +196,13 @@ function getNews(name,country,domain){
 							reject('')
 						}
 
-						const text = unfluff(body).text;
+						let text;
+						try{
+							text = unfluff(body).text;
+						}
+						catch(error){
+							text = ''
+						}
 
 						if(text.includes(name)){
 				    		let type;
@@ -319,103 +280,21 @@ function getNews(name,country,domain){
 		    	promises.push(articleText);
 			}
 		});
-		// const news = await Promise.all(promises).then(values => { 
-		// 	  return(values);
-		// 	})
-		// 	.catch(error => { 
-		// 	  console.error(error)
-		// 	});
+
 
 		const news = await Promise.all(promises.map(p => p.catch(e => e)));
 		const validNews = news.filter(result => !(result == ''));
 		//console.log(validNews);
 		resolve(validNews);
 		 
-		// request(newsUrl, (err,resp,body)=>{
-		// 	if(err){
-		// 		reject(err)
-		// 	}
-		//     //console.log(body)
-		//     let $ = cheerio.load(body)
-		//     let links = $('a')
-		//     let newsLinks = []
-		//     let news = []
-		//     links.each((i,e)=>{
-		//         let link = $(e).attr('href')
-		//         if(link.includes('/url') && !link.includes('webcache')){
-		//         	/*The URL in Google's href contains some weird clutter. Slice it at the correct position to obtain a valid URL*/
-		//             const position = link.indexOf('&sa')
-		//             const url = link.slice(7,position)
-		//             if(newsLinks.indexOf(url) == -1){
-		//             	/* For some reason there are more than 1 of the same URL. If the array doesn't already contain it, then add it. */
-		//                 newsLinks.push(url)
-		//                 const linkContainer = $(e).parent();
-		//                 const snippet = $(linkContainer).next().next().text();
-		//                 if(snippet.includes(name)){
-		//                     const title = $(e).text();
-		//                     const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
-		//                     const publishDetails = $(linkContainer).next().text();
-		//                     /*The format is e.g. The New Paper - 27th September 2017. Slice it by the - to seperate into data and publisher*/
-		//                     const position = publishDetails.indexOf('-');
-		//                     const publisher = publishDetails.slice(0,position-1);
-		//                     const date = publishDetails.slice(position+2,publishDetails.length)
-		//                     const newsObject = {title:title,date:date,snippet:snippet,publisher:publisher,thumbnail:thumbnail,url:url};
-		//                     news.push(newsObject)
-		//                 }
-		//             }
-		//         }
-		//     })
-		//     resolve(news);
-		// })
-	})
-}
-
-function getNewsFromDomain(domain){
-	return new Promise((resolve,reject)=>{
-		const newsUrl = `https://www.google.com/search?q="${domain}"&tbm=nws`
-		request(newsUrl, (err,resp,body)=>{
-			if(err){
-				reject(err)
-			}
-		    //console.log(body)
-		    let $ = cheerio.load(body)
-		    let links = $('a')
-		    let newsLinks = []
-		    let news = []
-		    links.each((i,e)=>{
-		        let link = $(e).attr('href')
-		        if(link.includes('/url') && !link.includes('webcache')){
-		        	/*The URL in Google's href contains some weird clutter. Slice it at the correct position to obtain a valid URL*/
-		            const position = link.indexOf('&sa')
-		            const url = link.slice(7,position)
-		            if(newsLinks.indexOf(url) == -1){
-		            	/* For some reason there are more than 1 of the same URL. If the array doesn't already contain it, then add it. */
-		                newsLinks.push(url)
-		                const linkContainer = $(e).parent();
-		                const snippet = $(linkContainer).next().next().text();
-		                if(snippet.toLowerCase().includes(domain)){
-		                    const title = $(e).text();
-		                    const thumbnail = $(linkContainer).parent().next().children().first().children().attr('src')
-		                    const publishDetails = $(linkContainer).next().text();
-		                    /*The format is e.g. The New Paper - 27th September 2017. Slice it by the - to seperate into data and publisher*/
-		                    const position = publishDetails.indexOf('-');
-		                    const publisher = publishDetails.slice(0,position-1);
-		                    const date = publishDetails.slice(position+2,publishDetails.length)
-		                    const newsObject = {title:title,date:date,snippet:snippet,publisher:publisher,thumbnail:thumbnail,url:url};
-		                    news.push(newsObject)
-		                }
-		            }
-		        }
-		    })
-		    resolve(news);
-		})
 	})
 }
 
 function getJobs(name){
 	//https://www.indeed.com.sg/jobs?q=company%3A(thunderquote)
 	return new Promise((resolve,reject)=>{
-		const jobUrl = `https://www.indeed.com.sg/jobs?q=${name}`
+		//const jobUrl = `https://www.indeed.com.sg/jobs?q=${name}`
+		const jobUrl = `https://www.indeed.com.sg/jobs?as_and=&as_phr=&as_any=&as_not=&as_ttl=&as_cmp=${name}&jt=all&st=&as_src=&radius=10&l=Singapore&fromage=any&limit=10&sort=&psf=advsrch`
 		request(jobUrl,(err,resp,body)=>{
 		    let $ = cheerio.load(body);
 		    let jobs = [];

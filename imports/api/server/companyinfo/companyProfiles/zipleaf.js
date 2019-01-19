@@ -6,6 +6,9 @@ export default function getZipleafSgInfo(name){
 	return new Promise((resolve,reject)=>{
 			const searchUrl = `https://sg.zipleaf.com/Search.html?q=${name}`
 			request(searchUrl,(err,resp,body)=>{
+				if(err){
+					resolve({});
+				}
 				try{
 				    let $ = cheerio.load(body)
 				    const href = $('.listings').children('h3').children('a').first().attr('href');
