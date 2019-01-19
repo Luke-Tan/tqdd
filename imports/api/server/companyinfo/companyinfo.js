@@ -41,19 +41,16 @@ Meteor.methods({
 			const cx = `004951682930566350351:14cirkszqh4`	//search engine key
 			const googleSearchEndpoint = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${name}`
 
+
 			request(googleSearchEndpoint, async (err,resp,body)=>{
 				if(err){
 					reject(err);
 				}
 				let json = JSON.parse(body);
-				//console.log(json.error.errors);
-				//console.log(json);
 
-				//console.log(body);
 				let googleUrls = json.items
 
 				/* Recommend is not scraped through Google as we can use recommends internal search engine, may switch over though*/
-
 				let jobStreetUrl;
 				let yeluUrl;
 				let kompassUrl;
@@ -101,7 +98,7 @@ Meteor.methods({
 					zipleafInfo,
 					tuugoInfo
 				]
-
+				//console.log(listInfo);
 				/* We will fill in the mising data for companyDetails here based on the above schema */
 				for(let info of listInfo) {
 					for(let prop in info){

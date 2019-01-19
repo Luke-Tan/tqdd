@@ -14,7 +14,7 @@ export default function getTuugoInfo(name){
                         let href = $('.item_lnk').first().attr('href')
                         let linkName = $('.item_lnk').first().text();
                         if(linkName.toLowerCase().includes(name.toLowerCase())){
-                        let tuugoProfile = nodeUrl.resolve('https://www.tuugo.sg',href);
+                            let tuugoProfile = nodeUrl.resolve('https://www.tuugo.sg',href);
                             request(tuugoProfile,(err,resp,body)=>{
                                 let $ = cheerio.load(body);
                                 const phone = $('.company_phone').text().replace(/[a-zA-Z.]/g,'').trim();
@@ -25,6 +25,8 @@ export default function getTuugoInfo(name){
                                 }
                                 resolve(companyProfile);
                             })
+                        } else {
+                            resolve({});
                         }
                     }
                     catch(error){
