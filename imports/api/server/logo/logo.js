@@ -49,7 +49,7 @@ async function getImagesAsBase64(images){
 		promises.push(loadAsync(image).then(results =>{
 			return {'src':image,'data':results};
 		}).catch(err=>{
-			console.log('LOL');
+			console.error(err);
 			return undefined;
 		}));
 	});

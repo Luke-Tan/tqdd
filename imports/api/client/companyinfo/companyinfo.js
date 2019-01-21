@@ -1,9 +1,8 @@
-export function getCompanyInfo(domain,name,render){	
-	Meteor.call('getCompanyInfo',domain,name,(err,result)=>{
+export function getCompanyInfo(fullUrl,domain,name,body,render){	
+	Meteor.call('getCompanyInfo',fullUrl,domain,name,body,(err,result)=>{
 		const companyInfo = [result];
 		Session.set('companyInfo', companyInfo);
         if(render !== undefined){
-        	console.log('hello')
             render();
         }
 	})

@@ -13,18 +13,33 @@ export default function getFullContactInfo(url){
 		}).then(function(res) {
 			return res.json();
 		}).then(function(json){
-			console.log(JSON.stringify(json));
-	        const date = new Date();
-	        const year = date.getFullYear();
-	        const age = year-(json.founded).toString();
+
+	        let name = json.name;
+	        let year = json.founded;
+	        let employees = json.employees;
+	        let logo = json.logo;
+	        let phone;
+	        try{
+				phone = json.details.phones[0].value;
+	        }
+	        catch(err){
+	        	phone = ''
+	        }
+	        let address = json.location
+
 			let companyDetails = {
-				name:json.name,
-				year:json.founded,
-				employees:`${json.employees} Employees`,
-				address:json.location,
-				logo:json.logo,
-				age:age,
-				phone:json.details.phones[0].value
+				name:name,
+				year:year,
+				employees:employees,
+				address:address,
+				logo:logo,
+				phone:phone
+			}
+
+			for(let key in companyDetails){
+				if(companyDetails[key] == null){
+					companyDetails[key] = ''
+				} 
 			}
 			resolve(companyDetails);
 		});	

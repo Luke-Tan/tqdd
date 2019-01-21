@@ -223,13 +223,13 @@ Meteor.methods({
 			request({url:url, timeout:15000},function(err,resp,body){
 			//(resp.statusCode)
 				if(!err && resp.statusCode ==200){
-					resolve(true)
+					resolve({status:true,body:body})
 				} else {
 					console.error(err);
 					if(resp != undefined){
 						console.error(resp.statusCode);
 					}
-					resolve(false)
+					resolve({status:false,body:''})
 				}
 			});
 		})
@@ -256,9 +256,7 @@ Meteor.methods({
 							// });
 							const link = nodeUrl.resolve(url,href);
 							/* 
-								Consider all urls that contain the word 'testimonial' inside is a valid link with testimonials
 								Reject urls that contain a '#'' as it just points to the home page and we dont want to make excess queries
-								Reject urls that are already inside the array in case there are multiple urls pointing to the same url 
 							*/
 							if(
 								!(hrefLowerCase.includes('#')) && 

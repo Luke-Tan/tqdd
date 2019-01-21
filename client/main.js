@@ -77,10 +77,11 @@ Template.main.events({
         $("#url").prop('disabled', false);                      // Re-enable input box after ping
         $("#search").removeClass('disabled');                   // Re-enable search button after ping
 
-        if(result == false){                                    // Error handling if the website is NOT able to be scraped
+        if(result.status == false){                                    // Error handling if the website is NOT able to be scraped
             Materialize.toast('Unable to scan URL. Please check if the url entered is valid!', 4000);
              $('#preloader').addClass('invisible');
         } else {
+            let body = result.body
             BlazeLayout.render('layout2', { top: "main",bot:"content"});    // Render layout with contents below included
 
             // Make all preloaders visible
@@ -144,7 +145,7 @@ Template.main.events({
                     console.log(name);
                     $('#social-preloader').addClass('invisible');
                 })  
-                getCompanyInfo(domain,name,()=>{
+                getCompanyInfo(fullUrl,domain,name,body,()=>{
                     $('#companyinfo-preloader').addClass('invisible');
                 });
             })
@@ -178,10 +179,11 @@ Template.main.events({
             // });
             Meteor.call('getUrls', fullUrl, (err,result)=>{
                 let urls = result;
-                getLogos(fullUrl, urls, () =>{
-                    //Make all preloaders invisible
-                    $('#logos-preloader').addClass('invisible');    
-                });
+
+                // getLogos(fullUrl, urls, () =>{
+                //     //Make all preloaders invisible
+                //     $('#logos-preloader').addClass('invisible');    
+                // });
 
                 getTestimonials(fullUrl, ()=>{
                     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
