@@ -7,10 +7,6 @@ Template.testimonials_template.helpers({
     	let testimonials = Session.get('testimonials');
         return testimonials;
     },
-    testimonialsNoFilter(){
-        let testimonialsNoFilter = Session.get('testimonialsNoFilter');
-        return testimonialsNoFilter
-    },
     noTestimonialsFound(){
     	let testimonials = Session.get('testimonials');
     	if(testimonials != undefined){
@@ -56,47 +52,6 @@ Template.testimonial_template.events({
     thumbDown.classList.remove('grey-text');
     thumbDown.classList.add('red-text');
     const thumbUp = document.getElementById(id+'_thumbup');  
-    thumbUp.classList.remove('green-text');
-    thumbUp.classList.remove('grey-text');
-    thumbUp.classList.add('grey-text');
-
-    //Propagate upvote/downvote to db
-    updateTestimonials(text,'wrong')
-    testScores(text,'wrong',scores)
-  },
-});
-
-Template.testimonial_template_no_filter.events({
-  'click .upvote'(event) {
-    const text = this.text
-    const id = this.id
-    const scores = this.scores;
-
-    console.log(this);
-    //Change colors of thumbs up/down buttons
-    const thumbUp = event.target
-    thumbUp.classList.remove('grey-text');   
-    thumbUp.classList.remove('green-text');   
-    thumbUp.classList.add('green-text'); 
-    const thumbDown = document.getElementById(id+'_thumbdown_noFilter');
-    thumbDown.classList.remove('red-text');
-    thumbDown.classList.remove('grey-text');
-    thumbDown.classList.add('grey-text');
-
-    //Propagate upvote/downvote to db
-    updateTestimonials(text,'correct');
-    testScores(text,'correct',scores)
-  },
-  'click .downvote'(event) {
-    const text = this.text
-    const id = this.id
-    const scores = this.scores
-    //Change colors of thumbs up/down buttons
-    const thumbDown = event.target
-    thumbDown.classList.remove('red-text');
-    thumbDown.classList.remove('grey-text');
-    thumbDown.classList.add('red-text');
-    const thumbUp = document.getElementById(id+'_thumbup_noFilter');  
     thumbUp.classList.remove('green-text');
     thumbUp.classList.remove('grey-text');
     thumbUp.classList.add('grey-text');

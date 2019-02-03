@@ -187,12 +187,11 @@ Template.main.events({
 
                 getTestimonials(fullUrl, ()=>{
                     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
-                    $("#testimonialsNoFilter-preloader").addClass('invisible'); // Make all preloaders invisible
                     $('.collapsible').collapsible({
                         accordion:false,
                     }); // Initialize the Materialize collapsible
 
-                    let length = Session.get('testimonialsNoFilter').length;
+                    let length = Session.get('testimonials').length;
                     setTimeout(function(){                
                         for(let i=0;i<length;i++){
                         $('.collapsible').collapsible('open', i);

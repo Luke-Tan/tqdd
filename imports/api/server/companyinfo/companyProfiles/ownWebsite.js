@@ -8,8 +8,10 @@ function getOwnPageInfo(body){
         $(this).replaceWith(' ');
     });
     let phone = '';
-    let address = ''
-    let year = ''
+    let address = '';
+    let year = '';
+    let email = [];
+
     $('*').not('script,style').each((index,element)=>{	
         let text;
         const childNodes = $(element).childNodes;
@@ -41,12 +43,14 @@ function getOwnPageInfo(body){
         const phoneRegEx2 = text.match(/\b\d{8}\b/);			//Check for phone number of the format 91178830
         const phoneRegEx3 = text.match(/\+\d{10}/);			//Check for phone number of the format +6591178830
 
-        //Address RegEx
+        //Address RegEx + Rules
         const addressRegEx = text.match(/\b\d{6}\b/);			//Check for address(postal code) of the format 268059
-
         //Year Founded RegEx + Rules						//Check for year founded of the format "Established ... 2019, Founded... 2019"
         const foundedRegEx = text.match(/\b\d{4}\b/);
-        const foundedWords = ['founded','established','inception','incepted','created','creation','establishment']
+        const foundedWords = ['founded','established','inception','incepted','created','creation','establishment',];
+        
+        //Email RegEx
+        const emailRegEx = text.match(/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/g);
 
         //Number of employees RegEx (experimental)
         //Empty
@@ -63,7 +67,10 @@ function getOwnPageInfo(body){
         
         	//Check for Address
             if(addressRegEx && address == ''){
-                address = `Singapore ${addressRegEx}`
+                const postalCodeIndex = text.indexOf(addressRegEx);
+                const end = postalCodeIndex+6; //Postal code is 6 chars long
+                const fullAddress = text.slice(0,end) //6 is the length of the postal code
+                address = fullAddress;
             }
         
         	//Check for Year Founded
@@ -72,7 +79,7 @@ function getOwnPageInfo(body){
                 let valid = false;
                 for(let sentence of sentences){
                     for(let word of foundedWords){
-                        if(sentence.includes(word)){
+                        if(sentence.toLowerCase().includes(word)){
                             valid = true;
                             year = text.match(/\b\d{4}\b/);
                             break
@@ -81,6 +88,13 @@ function getOwnPageInfo(body){
                     if(valid == true){
                         break
                     }
+                }
+            }
+
+            //Check for Email
+            if(emailRegEx){
+                if(!email.includes(emailRegEx[0])){
+                    email.push(emailRegEx[0])
                 }
             }
         }
@@ -93,7 +107,8 @@ function getOwnPageInfo(body){
 	const companyDetails = {
         phone:phone,
         address:address,
-        year:year
+        year:year,
+        email:email
     }
 
     return companyDetails;

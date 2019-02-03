@@ -35,11 +35,13 @@ Meteor.methods({
 				year:'',
 				employees:'',
 				address:'',
-				phone:''
+				phone:'',
+				email:''
 			}
 
 			const key = `AIzaSyD2mj2BjNyYUkNCrJJ3Rwx6ZuxyfkELpX4`; //api key
 			const cx = `004951682930566350351:14cirkszqh4`	//search engine key
+			//const searchName = name.replace(/[^\x00-\x7F]+/g,''); // Remove all non unicode characters (stuff like chinese, japanese) so that we don't get a bad search
 			const googleSearchEndpoint = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${name}`
 
 			request(googleSearchEndpoint, async (err,resp,body)=>{

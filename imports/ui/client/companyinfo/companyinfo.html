@@ -53,6 +53,16 @@
                           <span class="info-text red-text">Employee count not found</span>
                         {{/if}}
         							</div>
+                      <div class="row left-align">
+                        <i class="material-icons info-icon blue-text">email</i>
+                        {{#if companyInfoObj.email}}
+                          {{#each email in companyInfoObj.email}}
+                            <span class="info-text">{{email}}</span>
+                          {{/each}}
+                        {{else}}
+                          <span class="info-text red-text">Email Address not found</span>
+                        {{/if}}
+                      </div>
   						      </div>
         						<div class="col s5">
         							<div class="row left-align">

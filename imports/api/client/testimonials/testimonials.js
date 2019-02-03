@@ -2,7 +2,6 @@ export function getTestimonials(url, render) {
     Meteor.call('getTestimonials',url,(err,result)=>{
         console.log(result);
         Session.set('testimonials', result.testimonials);
-        Session.set('testimonialsNoFilter',result.testimonialsNoFilter)
         if(render !== undefined){
             render();
         }

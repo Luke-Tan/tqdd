@@ -152,7 +152,7 @@ function nameFromWebsite(url,domainName){
 					let start = copyright.indexOf(copyrightMarker)+1
 
 					let end;
-					const endMarkers = ['llp','pte','all','llc','|'];
+					const endMarkers = ['llp','pte','all','llc','|','-'];
 
 					for(let word of copyright){
 						if(endMarkers.includes(word)){

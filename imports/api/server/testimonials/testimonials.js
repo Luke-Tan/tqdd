@@ -448,7 +448,7 @@ function isTestimonial(text,classifier){
 		const testimonialScore = classifications[0].value;
 		const plainScore = classifications[1].value;
 		const factor = testimonialScore/plainScore;
-		if(factor > 100){
+		if(factor > 50){
 			return true;
 		} else {
 			return false;
@@ -512,7 +512,6 @@ function classifyTestimonials(link){
 					let $ = cheerio.load(body);
 					let texts = [];
 					let testimonials = [];
-					let testimonialsNoFilter = [];
 
 					$('br').each(function () {
 						$(this).replaceWith(' ');
@@ -554,7 +553,12 @@ function classifyTestimonials(link){
 									texts.push({'text':testimonialText,type:'testimonial'})
 									testimonialText = '';
 								}
-								texts.push({'text':text,type:'plain'});
+								if((text.toLowerCase() == 'read more' || text.toLowerCase().includes('+')) && $(element).attr('href')){
+									const href = nodeurl.resolve(link,$(element.attr('href')))
+									texts.push({text:text,type:'href',href:href})
+								} else {	
+									texts.push({'text':text,type:'plain'});
+								}
 							}
 						}
 					});
@@ -562,7 +566,7 @@ function classifyTestimonials(link){
 
 					const testimonialIndexes = getAllIndexes(texts,'testimonial');
 					if(testimonialIndexes.length == 0){
-						resolve({testimonials:[],testimonialsNoFilter:[]});
+						resolve({testimonials:[]});
 						return;
 					}
 
@@ -588,18 +592,14 @@ function classifyTestimonials(link){
 
 					let authorBeforeTestimonialTexts = []
 					for(let i=firstTestimonialIndex-1; i>=start; i--){
-						//console.log(i)
 						const text = texts[i].text;
 						authorBeforeTestimonialTexts.push(text);
-						//authorBeforeTestimonialScores.push(score/(firstTestimonialIndex-i))
 					}
 
 					let authorAfterTestimonialTexts = []
 					for(let i=lastTestimonialIndex+1; i<=end; i++){
 						const text = texts[i].text;
-						//const score = await authorScore(text);
 						authorAfterTestimonialTexts.push(text);
-						//authorAfterTestimonialScores.push(score/(i-lastTestimonialIndex));
 					}
 
 					const authorBeforeTestimonialScores = await batchAuthorScore(authorBeforeTestimonialTexts);
@@ -609,9 +609,6 @@ function classifyTestimonials(link){
 
 
 					let slicedTexts = texts.slice(start,end+1);
-					console.log(start)
-					console.log(end)
-
 
 					if(authorBeforeTestimonialSum <= authorAfterTestimonialSum){
 						thereIsAnAuthorAfterTestimonial = true;
@@ -636,19 +633,20 @@ function classifyTestimonials(link){
 							id++
 							const testimonialText = texts[index].text;
 							let author = ''
+							let href = ''
 							let authorCounter = 0;
 							let suspectedTestimonials = 0;
 							for(let i = 1; i<=maxDistance; i++){
 								const authorIndex = index-i
 								if(authorCounter >= minDistance || testimonialIndexes.includes(authorIndex) || author != '' && suspectedTestimonials > 0){
-									if(testimonialIndexes.includes(authorIndex)){
-										console.log('breakING')
-									}
 									break;
 								}
 								const authorText = texts[authorIndex].text;
+								const type = texts[authorIndex].type;
 								const lowAuthorText = authorText.toLowerCase();
-								if(
+								if(type == 'href' && href != ''){
+									href = texts[authorIndex].href;
+								} else if (
 									!lowAuthorText.includes('thank') && 	//Authors usually don't have these words... right??
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
@@ -671,7 +669,8 @@ function classifyTestimonials(link){
 							const testimonial = {
 								id:'testimonial_'+String(id),
 								text:testimonialText,
-								author: author
+								author: author,
+								href: href,
 							}
 							testimonials.push(testimonial);
 						}
@@ -682,6 +681,7 @@ function classifyTestimonials(link){
 							id++
 							const testimonialText = texts[index].text;
 							let author = ''
+							let href = ''
 							let authorCounter = 0;
 							let suspectedTestimonials = 0;
 							for(let i = 1; i<=maxDistance; i++){
@@ -690,8 +690,11 @@ function classifyTestimonials(link){
 									break;
 								}
 								const authorText = texts[authorIndex].text;
+								const type = texts[authorIndex].type;
 								const lowAuthorText = authorText.toLowerCase();
-								if(
+								if(type == 'href' && href != ''){
+									href = texts[authorIndex].href;
+								} else if(
 									!lowAuthorText.includes('thank') && //Authors usually don't have these words... right??
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
@@ -713,7 +716,8 @@ function classifyTestimonials(link){
 							const testimonial = {
 								id:'testimonial_'+String(id),
 								text:testimonialText,
-								author: author
+								author: author,
+								href:href,
 							}
 							testimonials.push(testimonial)
 						}
@@ -722,7 +726,6 @@ function classifyTestimonials(link){
 
 					resolve({
 						testimonials:testimonials,
-						testimonialsNoFilter:testimonials,
 					})
 				});
 			}
@@ -791,14 +794,11 @@ Meteor.methods({
 		let testimonialsUnflattened = await getTestimonials(testimonialLinks);
 		//const testimonials = testimonialsUnflattened.flatten();
 		let testimonials = []
-		let testimonialsNoFilter = []
 		testimonialsUnflattened.forEach(obj=>{
 			testimonials.push(obj.testimonials);
-			testimonialsNoFilter.push(obj.testimonialsNoFilter);
 		})
 
 		testimonials = testimonials.flatten();
-		testimonialsNoFilter = testimonialsNoFilter.flatten();
 		
 		let testimonialsNoDupes = [];
 		testimonials.forEach(testimonial=>{ 		//Remove all duplicates within the array (whether it be same testimonial or same author)
@@ -806,14 +806,8 @@ Meteor.methods({
 			  testimonialsNoDupes.push(testimonial);
 			}
 		});
-		let testimonialsNoFilterNoDupes = [];
-		testimonialsNoFilter.forEach(testimonial=>{ 		//Remove all duplicates within the array (whether it be same testimonial or same author)
-			if(!testimonialsNoFilterNoDupes.some(element => element.text === testimonial.text || element.author === testimonial.author)) {
-			  testimonialsNoFilterNoDupes.push(testimonial);
-			}
-		});
 
-		return {testimonials:testimonialsNoDupes,testimonialsNoFilter:testimonialsNoFilterNoDupes};
+		return {testimonials:testimonialsNoDupes};
 	},
 	updateTestimonials(text,type){
 		const existsInCorrectCollection = Boolean(CorrectTestimonialCollection.findOne({text: text}));
