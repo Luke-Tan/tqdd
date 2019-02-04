@@ -535,6 +535,7 @@ function classifyTestimonials(link){
 							})
 						}
 
+
 						if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
 							text = $(element).first().contents().filter(function() {
 							    return this.type === 'text';
@@ -543,6 +544,7 @@ function classifyTestimonials(link){
 						} else {
 							text = $(element).text().trim();		// Get text of the element
 						} 
+
 						/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
 						if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>') ){ 
 							if(isTestimonial(text,classifier)){
@@ -553,10 +555,24 @@ function classifyTestimonials(link){
 									texts.push({'text':testimonialText,type:'testimonial'})
 									testimonialText = '';
 								}
-								if((text.toLowerCase() == 'read more' || text.toLowerCase().includes('+')) && $(element).attr('href')){
-									const href = nodeurl.resolve(link,$(element.attr('href')))
+
+								// const testimonialShortenerMarkers = ['+','..','read more','…'];
+
+								// let shortenerFound = false;
+								// for(let shortener of testimonialShortenerMarkers){
+								// 	if(text.toLowerCase().includes(shortener) && $(element).attr('href')){
+								// 		const href = nodeurl.resolve(link,$(element).attr('href'));
+								// 		texts.push({text:text,type:'href',href:href})
+								// 		shortenerFound = true;
+								// 		break;
+								// 	}
+								// }
+
+								let link = $(element).attr('href');
+								if(link && !link.includes('#')){
+									const href = nodeurl.resolve(link,$(element).attr('href'));
 									texts.push({text:text,type:'href',href:href})
-								} else {	
+								} else { 
 									texts.push({'text':text,type:'plain'});
 								}
 							}
@@ -644,7 +660,7 @@ function classifyTestimonials(link){
 								const authorText = texts[authorIndex].text;
 								const type = texts[authorIndex].type;
 								const lowAuthorText = authorText.toLowerCase();
-								if(type == 'href' && href != ''){
+								if(type == 'href' && href == ''){
 									href = texts[authorIndex].href;
 								} else if (
 									!lowAuthorText.includes('thank') && 	//Authors usually don't have these words... right??
@@ -692,7 +708,7 @@ function classifyTestimonials(link){
 								const authorText = texts[authorIndex].text;
 								const type = texts[authorIndex].type;
 								const lowAuthorText = authorText.toLowerCase();
-								if(type == 'href' && href != ''){
+								if(type == 'href' && href == ''){
 									href = texts[authorIndex].href;
 								} else if(
 									!lowAuthorText.includes('thank') && //Authors usually don't have these words... right??
@@ -723,7 +739,7 @@ function classifyTestimonials(link){
 						}
 					}
 
-
+					console.log(testimonials);
 					resolve({
 						testimonials:testimonials,
 					})
