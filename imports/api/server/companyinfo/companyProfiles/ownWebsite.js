@@ -47,7 +47,7 @@ function getOwnPageInfo(body){
         const addressRegEx = text.match(/\b\d{6}\b/);			//Check for address(postal code) of the format 268059
         //Year Founded RegEx + Rules						//Check for year founded of the format "Established ... 2019, Founded... 2019"
         const foundedRegEx = text.match(/\b\d{4}\b/);
-        const foundedWords = ['founded','established','inception','incepted','created','creation','establishment',];
+        const foundedWords = ['founded','established','inception','incepted','created','creation','establishment','set'];
         
         //Email RegEx
         const emailRegEx = text.match(/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/g);

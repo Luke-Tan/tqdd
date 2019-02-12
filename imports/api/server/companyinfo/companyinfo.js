@@ -14,7 +14,6 @@ import {
 
 import getJobstreetInfo from '/imports/api/server/companyinfo/companyProfiles/jobstreet.js';
 import getKompassInfo from '/imports/api/server/companyinfo/companyProfiles/kompass.js';
-//import getRecommendSgInfo from '/imports/api/server/companyinfo/companyProfiles/recommendsg.js';
 import getYeluSgInfo from '/imports/api/server/companyinfo/companyProfiles/yelusg.js';
 import getZipleafInfo from '/imports/api/server/companyinfo/companyProfiles/zipleaf.js';
 import getTuugoInfo from '/imports/api/server/companyinfo/companyProfiles/tuugo.js';
@@ -51,7 +50,6 @@ Meteor.methods({
 				let json = JSON.parse(body);
 
 				let googleUrls = json.items
-				/* Recommend is not scraped through Google as we can use recommends internal search engine, may switch over though*/
 				let jobStreetUrl;
 				let yeluUrl;
 				let kompassUrl;
@@ -84,7 +82,6 @@ Meteor.methods({
 
 				// const kompassInfo = await getKompassInfo(kompassUrl,domain);
 				// const jobstreetInfo = await getJobstreetInfo(jobStreetUrl);
-				// //const recommendSgInfo = await getRecommendSgInfo(name);
 				// const yeluSgInfo = await getYeluSgInfo(yeluUrl);
 				// const zipleafInfo = await getZipleafInfo(name);
 				// const tuugoInfo = await getTuugoInfo(name);
@@ -101,7 +98,7 @@ Meteor.methods({
 					// tuugoInfo,
 					ownWebsiteInfo
 				]
-				//console.log(listInfo);
+
 				/* We will fill in the mising data for companyDetails here based on the above schema */
 				for(let info of listInfo) {
 					for(let prop in info){
@@ -120,7 +117,7 @@ Meteor.methods({
 					companyDetails.logo = clearbitLogo;
 				}
 
-				//If we can't find ANYTHING, use full contact while we can I guess?
+				//If we can't find ANYTHING, use full contact 
 				// if(
 				// 	Boolean(companyDetails.year) == false &&
 				// 	Boolean(companyDetails.employees) == false &&

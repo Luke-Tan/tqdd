@@ -147,7 +147,6 @@ function nameFromWebsite(url,domainName){
 					if(copyright.indexOf('com') != -1){
 						copyright.splice(copyright.indexOf('com'), 0, '.'); 
 					}
-					//(copyright);
 
 					let start = copyright.indexOf(copyrightMarker)+1
 
@@ -181,7 +180,7 @@ function nameFromWebsite(url,domainName){
 						}
 					}
 					if(end == undefined){
-						/* If no relevant end marker is found, assume that the company has 2 words as its name */
+						/* If no relevant end marker is found, assume that the company has 2 words in its name */
 						end = start+2;
 					}
 
@@ -189,7 +188,6 @@ function nameFromWebsite(url,domainName){
 					name = name.map(word => word.charAt(0).toUpperCase() + word.slice(1));
 					name = name.toString().replace(/[,]/g,' ');
 					if(Boolean(name) != false){
-						('COPYRIGHT TO NAME '+name)
 						resolve(name)
 						return
 					} else {
@@ -204,10 +202,6 @@ function nameFromWebsite(url,domainName){
 		    }
 		});
 	})
-}
-
-function nameFromTitle(){
-
 }
 
 function nameFromDomain(domain){

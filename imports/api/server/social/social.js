@@ -6,23 +6,9 @@ import unfluff from 'unfluff'
 
 import {
 	domainToName,
-	getDomain
+	getDomain,
+	getAllIndexes
 } from '../all/functions.js';
-
-/*
-Info:
-1. Number of times mentioned on google 'xxx results from google search ' => "Number of times mentioned on the web"
-2. Social shares
-3. Relevant news features from newsapi
-*/
-
-function getAllIndexes(arr, val) {
-    var indexes = [], i;
-    for(i = 0; i < arr.length; i++)
-        if (arr[i] === val)
-            indexes.push(i);
-    return indexes;
-}
 
 function getMentions(name,country){
 	return new Promise((resolve,reject)=>{
@@ -156,15 +142,13 @@ function getNews(name,country,domain){
 
 		//const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en`
 		console.log(searchTerm); 
+		//Search for news using the company name and the company website domain
 		const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
 		const googleRSSfeedDomain = `https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en` 
 		let parser = new Parser();
 
-		//console.log(googleRSSfeed);
-
 		const mainFeed = await parser.parseURL(googleRSSfeed);
 		const domainFeed = await parser.parseURL(googleRSSfeedDomain)
-		//console.log(feed.items);
 		let promises = []
 
 		mainFeed.items.forEach(async (item,index) => {
@@ -293,7 +277,6 @@ function getNews(name,country,domain){
 function getJobs(name){
 	//https://www.indeed.com.sg/jobs?q=company%3A(thunderquote)
 	return new Promise((resolve,reject)=>{
-		//const jobUrl = `https://www.indeed.com.sg/jobs?q=${name}`
 		const jobUrl = `https://www.indeed.com.sg/jobs?as_and=&as_phr=&as_any=&as_not=&as_ttl=&as_cmp=${name}&jt=all&st=&as_src=&radius=10&l=Singapore&fromage=any&limit=10&sort=&psf=advsrch`
 		request(jobUrl,(err,resp,body)=>{
 		    let $ = cheerio.load(body);
@@ -333,30 +316,19 @@ Meteor.methods({
 				jobs:'',
 				newsFromDomain:''
 			}
-
-
-			//console.log(json)
 			const domainName = domainToName(domain)
 
-			// console.log(name)
 			let mentions = await getMentions(name,country);
 			let shares = await getShares(url);
 			let news = await getNews(name,country,domain);
-			//let newsFromDomain = await getNewsFromDomain(domain);
 			let jobs = await getJobs(name);
-
-
-			// if(news.length == 0){	//if news returns an empty array, it means news wasnt found with the domainname, try searching with name
-			// 	news = await(getNews(name));
-			// }
 
 			social.name = name;
 			social.mentions = mentions;
 			social.shares = shares;
 			social.news = news;
 			social.jobs = jobs;
-			//social.newsFromDomain = newsFromDomain;
-			//console.log(social);
+
 			resolve(social)
 		})
 	}

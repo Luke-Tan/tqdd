@@ -1,6 +1,6 @@
 //Modules
 import './wordcloud.js';
-import { getDomain, extractName } from '../all/functions.js';
+import { getDomain } from '../all/functions.js';
 
 //npm dependancies
 import NaturalLanguageUnderstandingV1 from 'watson-developer-cloud/natural-language-understanding/v1.js';
@@ -10,13 +10,6 @@ var nlu = new NaturalLanguageUnderstandingV1({
   'password': Meteor.settings.WATSON_PASSWORD,
   'version': '2018-03-16'
 });
-
-function countWords(s){
-    s = s.replace(/(^\s*)|(\s*$)/gi,"");//exclude  start and end white-space
-    s = s.replace(/[ ]{2,}/gi," ");//2 or more space to 1
-    s = s.replace(/\n /,"\n"); // exclude newline with a start spacing
-    return s.split(' ').length; 
-}
 
 function analyze(params) {
     return new Promise((resolve, reject) => {
@@ -66,8 +59,6 @@ Meteor.methods({
 	async scrapeText(url){
 		let domain = getDomain(url);
 
-		console.log(domain);
-		console.log(url);
 		let params = {
 		  'url': domain,
 		  'features': {

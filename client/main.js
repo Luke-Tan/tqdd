@@ -12,7 +12,7 @@ import { getTestimonials } from '/imports/api/client/testimonials/testimonials.j
 import { getCompanyInfo } from '/imports/api/client/companyinfo/companyinfo.js'
 import { getSocial } from '/imports/api/client/social/social.js';
 
-import { extractRootDomain , extractHostname, getHostName, getDomain } from '/imports/api/client/all/functions.js';
+import { extractHostname, getDomain } from '/imports/api/client/all/functions.js';
 
 //npm modules
 import scrollIntoView from 'scroll-into-view';
@@ -49,9 +49,7 @@ Template.main.events({
     const host = extractHostname(enteredUrl);
     console.log(host);
     const domain = getDomain(enteredUrl);
-    // Meteor.call('getGoogleLinks', bareUrl, (err,result)=>{
-    //     console.log(result);
-    // });
+
     if(domain == enteredUrl){               // Assume that url does not contain a subdomain
         fullUrl = protocol+'www.'+domain;
     } else {                                // Assume that url contains a subdomain
@@ -109,22 +107,8 @@ Template.main.events({
 
             });
 
-
+            //Remove ping preloader
             $('#preloader').addClass('invisible');
-
-            // getCompanyInfo(domain, ()=>{
-            //     $('#companyinfo-preloader').addClass('invisible');
-            // });
-
-            // const social = {
-            //     name:'ThunderQuote'
-            //     mentions: '22,200',
-            //     shares: { facebook: 1768, pinterest: 0, stumbles: 0 },
-            //     news: { count: 0, articles: [] } 
-            // }
-
-            //Session.set('social',[social]);
-            //$('#social-preloader').addClass('invisible');
 
             const locale = domain.slice(-2);
             let country;
@@ -137,8 +121,8 @@ Template.main.events({
                 country = '';
             }
 
+            // Any module that requires the company name should be put in here
             Meteor.call('getName',fullUrl,domain,(err,result)=>{
-                // Any module that requires the company name should be put in here
                 const name = result
 
                 getSocial(fullUrl,domain,name,country, ()=>{
@@ -149,20 +133,6 @@ Template.main.events({
                     $('#companyinfo-preloader').addClass('invisible');
                 });
             })
-
-
-            // const companyInfo = [{
-            //     name:'Efusion Technology',
-            //     year:'2002',
-            //     employees:'0-9 Employees',
-            //     address:'9a Kings Road Singapore',
-            //     logo:'https://logo.clearbit.com/efusiontech.com',
-            //     age:'10',
-            //     phone:'04123041324'
-            // }]
-
-            // Session.set('companyInfo', companyInfo);
-            // $('#companyinfo-preloader').addClass('invisible');
 
             // getWordCloud(fullUrl, ()=>{
             //     //Make all preloaders invisible
@@ -177,6 +147,8 @@ Template.main.events({
             //     //Make all preloaders invisible
             //     $("#whois-preloader").addClass('invisible');
             // });
+
+            //Any module that requires urls within the website should be here
             Meteor.call('getUrls', fullUrl, (err,result)=>{
                 let urls = result;
 
@@ -192,6 +164,7 @@ Template.main.events({
                     }); // Initialize the Materialize collapsible
 
                     let length = Session.get('testimonials').length;
+                    //Open all testimonial collapsibles
                     setTimeout(function(){                
                         for(let i=0;i<length;i++){
                         $('.collapsible').collapsible('open', i);
@@ -199,9 +172,6 @@ Template.main.events({
 
                 });
             })
-
-
-            //Meteor.call('getData');
         }
     });
   }

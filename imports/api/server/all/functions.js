@@ -74,3 +74,12 @@ export function fuzzyMatch(needle, haystack) {
     // At this point, we have matched every single letter in the needle without returning false
     return true;
 }
+
+/*Get all indexes of something in an array*/
+function getAllIndexes(arr, val) {
+    let indexes = [], i;
+    for(i = 0; i < arr.length; i++)
+        if (arr[i].type === val)
+            indexes.push(i);
+    return indexes;
+}

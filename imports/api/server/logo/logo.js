@@ -23,9 +23,8 @@ const kGraph = KGSearch(Meteor.settings.GOOGLE_API_KEY);
 
 
 /* Functions for loading and preparing of images in base64 buffer to send to google cloud API */
-function loadAsync(image){
+function srcToBuffer(image){
     return new Promise(function(resolve,reject){
-    	//console.log(image);
     	if(!image.includes('base64')){
 		    request({url: image, encoding: null}, function (err, res, body) {
 		        if (!err && res.statusCode == 200) {
@@ -46,7 +45,7 @@ function loadAsync(image){
 async function getImagesAsBase64(images){
 	let promises = [];
 	images.forEach(image =>{
-		promises.push(loadAsync(image).then(results =>{
+		promises.push(srcToBuffer(image).then(results =>{
 			return {'src':image,'data':results};
 		}).catch(err=>{
 			console.error(err);
@@ -70,9 +69,7 @@ async function loadImages(urls){
 				$ = cheerio.load(body);
 				var imgs = $('img');
 				$(imgs).each(function(i,img){
-
 					let src = img.attribs.src;
-
 					if(src == undefined){
 						//console.log(img.attribs);
 						let srcBreak = false;
@@ -88,12 +85,6 @@ async function loadImages(urls){
 							}
 						);				
 					}
-
-					/*
-
-					INCLUDE CHECK TO OBTAIN FIRST URL IF SRC IS A SRCSET!!!
-
-					*/
 
 					//If src is still undefined, do NOT attempt to resolve
 					if(src != undefined){
@@ -152,16 +143,11 @@ function removeDuplicates(originalArray, prop) {
          newArray.push(lookupObject[i]);
      }
       return newArray;
- }
-
-//google.resultsPerPage = 1;
+}
 
 /* Methods to be called by client to scrape for images */
 Meteor.methods({
 	async scrapeLogos(mainUrl, urls){
-		//Set URL for imagescraper to scrape
-		//imageScraper.address = url;
-		//console.log(urls);
 		// let clientUrls = urls.filter(url => {url.includes('client') || url.includes('portfolio')});;
 		let clientUrls= urls.filter(url => {
 		    if (url.includes('client') || url.includes('portfolio')){
@@ -200,7 +186,6 @@ Meteor.methods({
 				    		});
 									    		
 							/* @logoset: {name:...,description:...} */
-
 				    		logosArray.push({'logoset':logoSet,'src':image.src, 'multilogo':true});
 				    	} else if(logos.length == 1) {
 				    		logos.forEach(logo => {

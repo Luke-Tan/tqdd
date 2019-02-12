@@ -4,36 +4,14 @@ import cheerio from 'cheerio';
 import request from 'request';
 import nodeurl from 'url';
 import nlp from 'compromise';
-//import { testimonialData, plainData } from './trainingdata.js';
-// import { testimonialData } from './incrementTestimonialTrain.js';
-// import { plainData } from './incrementPlainTraining.js';
 import language from '@google-cloud/language';
-//import CoreNLP, { Properties, Pipeline, ConnectorServer } from 'corenlp';
 import pd from 'paralleldots';
-
-//import logistic_classifier from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier.json';
-// import logistic_classifier_2 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_2.json';
-// import logistic_classifier_3 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_3.json';
-//import logistic_classifier_5 from '/imports/api/server/testimonials/trainedClassifiers/logistic_classifier_5.json';
-
-
-// import { testData } from './testdata.js';
-// import { plainTestData } from './testplaindata.js'
-
 /*Internal modules*/
 import { CorrectTestimonialCollection , WrongTestimonialCollection , truePositives, falsePositives } from '../../both/collections/TestimonialCollection.js';
+import { getAllIndexes } from '../all/functions.js';
 
 /* Instantiate paralleldots */
 pd.apiKey = "l6SW7NUATYudvEHJE1dgWvg0AZACODHjGm65vH43Es8";
-
-/* Instantiate coreNLP server */
-// const props = new Properties({
-//   annotators: 'ner',
-// });
-
-// const connector = new ConnectorServer({ dsn: 'https://fast-crag-55472.herokuapp.com/' });	// URL of internally set up stanford CoreNLP server
-
-// const pipeline = new Pipeline(props, 'English', connector);
 
 /* Instantiates Google Cloud Natural Language client */
 const client = new language.LanguageServiceClient({
@@ -44,141 +22,6 @@ const client = new language.LanguageServiceClient({
 	}
 });
 
-
-
-// const oldClassifier = natural.LogisticRegressionClassifier.restore((logistic_classifier));
-// const newClassifier = natural.LogisticRegressionClassifier.restore((new_logistic_classifier));
-//let classifier = natural.LogisticRegressionClassifier.restore(logistic_classifier_5);
-
-
-//let classifier = new natural.BayesClassifier();
-
- //let classifier = new natural.LogisticRegressionClassifier();
-
-// const testimonialUserData = CorrectTestimonialCollection.find({}).fetch();
-
-// const plainUserData = WrongTestimonialCollection.find({}).fetch();
-
-
-// testimonialUserData.forEach((testimonial)=>{
-// 	classifier.addDocument(testimonial.text,'testimonial');
-// })
-
-// testimonialData.forEach((testimonial)=>{
-// 	classifier.addDocument(testimonial,'testimonial');
-	
-// });
-
-// plainData.forEach((plain)=>{
-// 	classifier.addDocument(plain,'plain');
-	
-// });
-
-// plainUserData.forEach((plain)=>{
-// 	classifier.addDocument(plain.text,'plain')
-// })
-
-//classifier.train();
-
-// natural.LogisticRegressionClassifier.load(Assets.absoluteFilePath('logistic_classifier_4.json'), null, function(err, classifier) {
-// 	if(err){
-// 		console.log(err);
-// 	}
-// 	let plainScore0 = 0;
-// 	let plainScore2 = 0;
-// 	let plainScore10 = 0;
-// 	let plainScore50 = 0;
-// 	let plainScore100 = 0
-// 	let scoreFilter0 = 0
-// 	let scoreFilter2 = 0;
-// 	let scoreFilter10 = 0;
-// 	let scoreFilter50 = 0;
-// 	let scoreFilter100 = 0
-
-
-
-// 	//console.log(classifier.classify(``))
-// 	plainTestData.forEach(text=>{
-// 		if(classifier.classify(text) == 'plain'){
-// 			// const classifications = classifier.getClassifications(text);
-// 			// const testimonialScore = classifications[0].value;
-// 			// const plainScore = classifications[1].value;
-// 			// const factor = testimonialScore/plainScore;
-// 			// if(factor > 100){
-// 			// 	oldScoreFilter++
-// 			// }
-
-// 			plainScore0++
-// 			plainScore2++
-// 			plainScore10++
-// 			plainScore50++
-// 			plainScore100++
-// 		} else {
-// 			const classifications = classifier.getClassifications(text);
-// 			const testimonialScore = classifications[0].value;
-// 			const plainScore = classifications[1].value;
-// 			const factor = testimonialScore/plainScore;
-// 			if(factor < 100){
-// 				plainScore100++
-// 			} 
-// 			if(factor < 50){
-// 				plainScore50++
-// 			} 
-// 			if(factor<10){
-// 				plainScore10++
-// 			}  
-// 			if(factor<2){
-// 				plainScore2++
-// 			}
-// 		}
-
-// 	})
-
-// 	testData.forEach(text=>{
-// 		if(classifier.classify(text) == 'testimonial'){
-// 			const classifications = classifier.getClassifications(text);
-// 			const testimonialScore = classifications[0].value;
-// 			const plainScore = classifications[1].value;
-// 			const factor = testimonialScore/plainScore;
-// 			if(factor > 100){
-// 				scoreFilter100++
-// 			} 
-// 			if(factor > 50){
-// 				scoreFilter50++
-// 			} 
-// 			if(factor>10){
-// 				scoreFilter10++
-// 			}  
-// 			if(factor>2){
-// 				scoreFilter2++
-// 			}
-// 			scoreFilter0++
-// 		}
-
-// 	})
-// 	console.log(`Classifier 5 scored ${plainScore0}/200 for the plain data test (no filter)`);
-// 	console.log(`Classifier 5 scored ${plainScore2}/200 for the plain data test (filter 2)`);
-// 	console.log(`Classifier 5 scored ${plainScore10}/200 for the plain data test (filter 10)`);
-// 	console.log(`Classifier 5 scored ${plainScore50}/200 for the plain data test (filter 50)`);
-// 	console.log(`Classifier 5 scored ${plainScore100}/200 for the plain data test (filter 100)`);
-// 	console.log(`Classifier 5 scored ${scoreFilter0}/200 for the testimonial data test (no filter)`);
-// 	console.log(`Classifier 5 scored ${scoreFilter2}/200 for the testimonial data test (filter 2)`);
-// 	console.log(`Classifier 5 scored ${scoreFilter10}/200 for the testimonial data test (filter 10)`);
-// 	console.log(`Classifier 5 scored ${scoreFilter50}/200 for the testimonial data test (filter 50)`);
-// 	console.log(`Classifier 5 scored ${scoreFilter100}/200 for the testimonial data test (filter 100)`);
-
-// });
-
-
-//console.log(`Bayes New classifier scored ${oldScoreFilter} with filter`)
-//console.log(`Bayes New classifier scored ${oldScore} without filter`)
-// console.log(`New classifier scored ${newScoreFilter} with filter`)
-// console.log(`New classifier scored ${newScore} without filter`)
-
-
-// classifier.save('logistic_classifier_5.json', function(err, classifier) {
-//     console.log('classifier saved!');
-// });
 
 /* Agnostic functions */
 function wordCount(str) {
@@ -201,26 +44,6 @@ function countEntities(entities){
 	  return pos === 0 || item !== arr[pos-1];
 	});
 }
-
-function isAuthorPreCheck(text){
-	let doc = nlp(text);
-	let people = doc.people().data();
-	if(0<people.length && people.length<4){
-		console.log(text+' PASSED')
-		return true
-	} else {
-		return false
-	}
-}
-
-function getAllIndexes(arr, val) {
-    let indexes = [], i;
-    for(i = 0; i < arr.length; i++)
-        if (arr[i].type === val)
-            indexes.push(i);
-    return indexes;
-}
-
 
 function getDistances(arrayOfIndexes) {
 	const arr = arrayOfIndexes;
@@ -288,103 +111,7 @@ function getMaxDistance(arrayOfIndexes) {
 }
 
 /* Testimonial functions */
-async function isAuthor(text){
-
-	// let sentence = new CoreNLP.simple.Sentence(text);
-	// const result = await pipeline.annotate(sentence)
-	//   	.then(sent => {
-	// 	    const entities = sent.nerTags();
-	// 	    const collapsedEntities = countEntities(entities);	//Makes counting easier as coreNLP tags each word within a phrase as an entity itself e.g. Luke Tan => 'PERSON','PERSON'
-	// 	    let people = 0;
-	// 	    let orgs = 0;
-	// 	    collapsedEntities.forEach(entity=>{	// Count the number of relevant entities within the text to determine if it is an author
-	// 	    	if(entity == 'PERSON'){
-	// 	    		people++
-	// 	    	} else if(entity == 'ORGANIZATION'){
-	// 	    		orgs++
-	// 	    	}
-	// 	    });
-	// 	    if(people == 1 || people == 2 || orgs == 1 || orgs == 2){ // For leeway, consider anything with 1-2 people, 1-2 organisations as an author *Can be varied*
-	//
-	// 	    	return {'text':text,'index':index}; // Return the index as well so it is easy to find the text in the array for tagging
-	// 	    } else {
-	// 	    	console.error(text+' FAILED')
-	// 	    	return ''
-	// 	    }
-	    
-	//   	}).catch(err =>{
-	//   		console.error('stanford NER error', err);
-	//   		return '';
-	//   	})
-	//   	.catch(async err => {
-	//   		console.log('FAILED' + 'NLP' + err)	  
-	//   		}
-
-	const document = {
-		content:text,
-		type: 'PLAIN_TEXT',
-	}
-	const result = await client
-	  .analyzeEntities({document: document})
-	  .then(results => {
-	    const entities = results[0].entities;
-	    let people = 0;
-	    let organizations = 0;
-
-	    entities.forEach(entity => {
-	      
-	      if(entity.type == 'PERSON'){
-	      	
-	        people++
-	      }
-	      if(entity.type == 'ORGANIZATION'){
-	      	organizations++
-	      }
-	    });
-	   	
-
-	   	if(0<people && people <3 || organizations == 1){
-	   		return true
-	   	} else {
-	   		return false;
-	   	}
-	  })
-	  .catch(err => {
-	    console.error('google language ERROR:', err);
-	    return '';
-		});		
-	return result;
-}
-
 async function authorScore(text){
-	// const document = {
-	// 	content:text,
-	// 	type: 'PLAIN_TEXT',
-	// }
-	// const result = await client
-	// 	.analyzeEntities({document: document})
-	// 	.then(results => {
-	// 	    const entities = results[0].entities;
-	// 	    let score = 0;
-	// 	    entities.forEach(entity => {
-	// 	      console.log(entity)
-	// 	      if(entity.type == 'PERSON'){
-	// 	       	score += 3*entity.salience;
-	// 	      }
-	// 	      if(entity.type == 'ORGANIZATION'){
-	// 	      	score += 1*entity.salience;
-	// 	      }
-	// 	    });
-		   	
-	// 	    return score;
-	// 	})
-	// 	.catch(err => {
-	// 	    console.error('google language ERROR:', err);
-	// 	    return 0;
-	// 	});		
-	// return result;
-
-
 	const result = await pd.ner(text)
 	    .then((response) => {
 	        const entities = (JSON.parse(response)).entities;
@@ -556,18 +283,6 @@ function classifyTestimonials(link){
 									testimonialText = '';
 								}
 
-								// const testimonialShortenerMarkers = ['+','..','read more','…'];
-
-								// let shortenerFound = false;
-								// for(let shortener of testimonialShortenerMarkers){
-								// 	if(text.toLowerCase().includes(shortener) && $(element).attr('href')){
-								// 		const href = nodeurl.resolve(link,$(element).attr('href'));
-								// 		texts.push({text:text,type:'href',href:href})
-								// 		shortenerFound = true;
-								// 		break;
-								// 	}
-								// }
-
 								let link = $(element).attr('href');
 								if(link && !link.includes('#')){
 									const href = nodeurl.resolve(link,$(element).attr('href'));
@@ -578,6 +293,9 @@ function classifyTestimonials(link){
 							}
 						}
 					});
+
+
+					console.log(texts);
 
 
 					const testimonialIndexes = getAllIndexes(texts,'testimonial');
@@ -749,9 +467,6 @@ function classifyTestimonials(link){
 	});
 }
 
-
-
-
 Meteor.methods({
 	async getTestimonials(url){
 
@@ -823,7 +538,7 @@ Meteor.methods({
 			}
 		});
 
-		return {testimonials:testimonialsNoDupes};
+		return testimonialsNoDupes;
 	},
 	updateTestimonials(text,type){
 		const existsInCorrectCollection = Boolean(CorrectTestimonialCollection.findOne({text: text}));
@@ -855,40 +570,6 @@ Meteor.methods({
 				break
 		}
 	},
-	testScores(text,type,scores){
-		const existsInTruePositives = Boolean(truePositives.findOne({text: text}));
-		const existsInFalsePositives   = Boolean(falsePositives.findOne({text: text}));
-		switch(type){
-			case 'correct':
-				if(!existsInTruePositives ){
-					truePositives.insert({
-						text: text,
-						scores:scores
-					});
-				}
-				if(existsInFalsePositives){
-					falsePositives.remove({
-						text: text,
-						scores:scores
-					});				
-				}
-				break
-			case 'wrong':
-				if(!existsInFalsePositives){
-					falsePositives.insert({
-						text: text,
-						scores:scores
-					});
-				}
-				if(existsInTruePositives){
-					truePositives.remove({
-						text: text,
-						scores:scores
-					});
-				}
-				break
-		}
-	}
 });
 
 

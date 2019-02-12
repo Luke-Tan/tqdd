@@ -1,5 +1,5 @@
 import { Template } from 'meteor/templating';
-import { updateTestimonials , testScores } from '/imports/api/client/testimonials/testimonials.js'
+import { updateTestimonials } from '/imports/api/client/testimonials/testimonials.js'
 import './testimonials.html';
 
 Template.testimonials_template.helpers({
@@ -40,7 +40,6 @@ Template.testimonial_template.events({
 
     //Propagate upvote/downvote to db
     updateTestimonials(text,'correct');
-    testScores(text,'correct',scores)
   },
   'click .downvote'(event) {
     const text = this.text
@@ -58,7 +57,6 @@ Template.testimonial_template.events({
 
     //Propagate upvote/downvote to db
     updateTestimonials(text,'wrong')
-    testScores(text,'wrong',scores)
   },
 });
 
