@@ -10,12 +10,6 @@ import {
 	getAllIndexes
 } from '../all/functions.js';
 
-function getMentions(name,country){
-	return new Promise((resolve,reject)=>{
-		resolve('9000')
-	})
-}
-
 function getShares(url){
 	function getFacebook(url){
 		return new Promise((resolve,reject)=>{
@@ -58,12 +52,24 @@ function getShares(url){
 	}
 	return new Promise(async(resolve,reject)=>{
 		let promises = [];
-		promises.push(getFacebook(url).then(results=>{
-			return {facebook:results}
-		}))
-		promises.push(getPinterest(url).then(results=>{
-			return {pinterest:results}
-		}))
+		promises.push(getFacebook(url)
+			.then(results=>{
+				return {facebook:results}
+			})
+			.catch(error=>{
+				console.error(error);
+				return {facebook:0}
+			})
+		)
+		promises.push(getPinterest(url)
+			.then(results=>{
+				return {pinterest:results}
+			})
+			.catch(error=>{
+				console.error(error);
+				return {pinterest:0}
+			})
+		)
 		promises.push(getStumbles(url).then(results=>{
 			return {stumbles:results}
 		}))
@@ -79,7 +85,8 @@ function getShares(url){
 
 function getNews(name,country,domain){
 	return new Promise(async (resolve,reject)=>{
-		console.log(country);
+		//name = name.replace(/[^\x00-\x7F]+/g,''); // Remove all non unicode characters (stuff like chinese, japanese) so that we don't get a bad search
+		name = name.replace(/’/g,`'`)			  // Replace known weird characters with similar ones that are used more often
 		const countryMarkers = [
 			'sg',
 			'singapore',
@@ -103,34 +110,6 @@ function getNews(name,country,domain){
 			}
 		}
 
-		// let firstWord;
-		// let remainingWords;
-		// let searchTerm;
-		// if(nameLength > 1){
-		// 	firstWord = nameSplit[0];
-		// 	remainingWords = nameSplit.filter((item,index)=>{ return index !== 0 }).join(' ');
-		// 	//Check if there is already a country inside the remaining words
-		// 	for(let word of remainingWords){
-		// 		if(countryMarkers.includes(word.toLowerCase)){
-		// 			searchTerm = `"${firstWord}" ${remainingWords}`
-		// 			break;
-		// 		}
-		// 	}
-		// 	//If not, include the country in the search term if it is not undefined
-		// 	if(country != undefined){
-		// 		searchTerm = `"${firstWord}" ${remainingWords} ${country}`
-		// 	} else {
-		// 		searchTerm = `"${firstWord}" ${remainingWords}`
-		// 	}
-		// } else {
-		// 	if(country != undefined){
-		// 		searchTerm = `"${name}" ${country}`
-		// 	} else {
-		// 		searchTerm = `"${name}"`
-		// 	}
-			
-		// }
-
 		let searchTerm;
 		if(countryMarker != undefined){
 			searchTerm = `"${name}" ${countryMarker}`
@@ -141,14 +120,20 @@ function getNews(name,country,domain){
 		}
 
 		//const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en`
-		console.log(searchTerm); 
+
 		//Search for news using the company name and the company website domain
-		const googleRSSfeed = `https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en` 
-		const googleRSSfeedDomain = `https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en` 
+		const googleRSSfeed = encodeURI(`https://news.google.com/_/rss/search?q=${searchTerm}&hl=en-SG&gl=SG&ceid=SG:en`);
+		const googleRSSfeedDomain = encodeURI(`https://news.google.com/_/rss/search?q="${domain}"&hl=en-SG&gl=SG&ceid=SG:en`);
 		let parser = new Parser();
 
-		const mainFeed = await parser.parseURL(googleRSSfeed);
-		const domainFeed = await parser.parseURL(googleRSSfeedDomain)
+		const mainFeed = await parser.parseURL(googleRSSfeed).catch((err)=>{
+			console.error(err);
+			return {items:[]};
+		});
+		const domainFeed = await parser.parseURL(googleRSSfeedDomain).catch((err)=>{
+			console.error(err);
+			return {items:[]};
+		})
 		let promises = []
 
 		mainFeed.items.forEach(async (item,index) => {
@@ -279,6 +264,10 @@ function getJobs(name){
 	return new Promise((resolve,reject)=>{
 		const jobUrl = `https://www.indeed.com.sg/jobs?as_and=&as_phr=&as_any=&as_not=&as_ttl=&as_cmp=${name}&jt=all&st=&as_src=&radius=10&l=Singapore&fromage=any&limit=10&sort=&psf=advsrch`
 		request(jobUrl,(err,resp,body)=>{
+			if(err){
+				reject(err);
+				return;
+			}
 		    let $ = cheerio.load(body);
 		    let jobs = [];
 		    let jobHTML = $('.row.result');
@@ -309,22 +298,15 @@ Meteor.methods({
 	getSocial(url,domain,name,country){
 		return new Promise(async (resolve,reject)=>{
 			let social = {
-				name:'',
-				mentions: '',
 				shares: '',
 				news:'',
 				jobs:'',
-				newsFromDomain:''
 			}
-			const domainName = domainToName(domain)
 
-			let mentions = await getMentions(name,country);
 			let shares = await getShares(url);
 			let news = await getNews(name,country,domain);
 			let jobs = await getJobs(name);
 
-			social.name = name;
-			social.mentions = mentions;
 			social.shares = shares;
 			social.news = news;
 			social.jobs = jobs;

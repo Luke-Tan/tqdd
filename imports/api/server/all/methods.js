@@ -7,7 +7,6 @@ import {
 	domainToName 
 } from './functions.js'
 
-
 function insert(str, index, value) {
     return str.substr(0, index) + value + str.substr(index);
 }
@@ -210,7 +209,6 @@ function nameFromDomain(domain){
 	return name;
 }
 
-
 Meteor.methods({
 	checkForValidUrl(url){
 		return new Promise((resolve,reject)=>{
@@ -266,16 +264,21 @@ Meteor.methods({
 		});
 	},
 	getName(url,domain){
-		// 1. Clearbit
-		// 2. Copyright
-		// 3. URL
+		/* 1. Clearbit
+		 * 2. Website (1.Title 2.Copyright)
+		 * 3. URL
+		*/
 		const domainName = nameFromDomain(domain);
-		console.error(domain);
-		console.error(domainName);
 		return new Promise(async (resolve,reject)=>{
-			let name = await nameFromClearbit(domain);
+			let name = await nameFromClearbit(domain).catch((err=>{
+				console.error(err);
+				return ''
+			}));
 			if(name == ''){
-				name = await nameFromWebsite(url,domainName);
+				name = await nameFromWebsite(url,domainName).catch((err=>{
+					console.error(err);
+					return ''
+				}));
 			}
 			if(name == ''){
 				name = domainName;

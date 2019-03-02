@@ -134,28 +134,23 @@ Template.main.events({
                 });
             })
 
-            // getWordCloud(fullUrl, ()=>{
-            //     //Make all preloaders invisible
-            //     $("#wordcloud-preloader").addClass('invisible');
-            //     $('#wordchart-preloader').addClass('invisible');
-            //     $("#wordcloud-tab").removeClass('disabled');
-            //     $('#wordchart-tab').removeClass('disabled');
+            getWordCloud(fullUrl,body, ()=>{
+                //Make all preloaders invisible
+                $("#wordcloud-preloader").addClass('invisible');
+                $('#wordchart-preloader').addClass('invisible');
+                $("#wordcloud-tab").removeClass('disabled');
+                $('#wordchart-tab').removeClass('disabled');
 
-            // });
-
-            // getWhoIs(domain, ()=>{
-            //     //Make all preloaders invisible
-            //     $("#whois-preloader").addClass('invisible');
-            // });
+            });
 
             //Any module that requires urls within the website should be here
             Meteor.call('getUrls', fullUrl, (err,result)=>{
                 let urls = result;
 
-                // getLogos(fullUrl, urls, () =>{
-                //     //Make all preloaders invisible
-                //     $('#logos-preloader').addClass('invisible');    
-                // });
+                getLogos(fullUrl, urls, () =>{
+                    //Make all preloaders invisible
+                    $('#logos-preloader').addClass('invisible');    
+                });
 
                 getTestimonials(fullUrl, ()=>{
                     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible

@@ -76,7 +76,7 @@ export function fuzzyMatch(needle, haystack) {
 }
 
 /*Get all indexes of something in an array*/
-function getAllIndexes(arr, val) {
+export function getAllIndexes(arr, val) {
     let indexes = [], i;
     for(i = 0; i < arr.length; i++)
         if (arr[i].type === val)

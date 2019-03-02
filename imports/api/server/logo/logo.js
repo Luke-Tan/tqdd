@@ -6,7 +6,7 @@ import KGSearch from 'google-kgsearch';
 import nodeUrl from 'url';
 
 /* Global constants */ 
-const logoThreshold = 0;		// Confidence threshold to accept/reject a logo from Google Vision
+const logoThreshold = 0.4;		// Confidence threshold to accept/reject a logo from Google Vision
 const blurbThreshold = 50;		// Confidence threshold to accept/reject a blurb from Google Knowledge Graph
 
 /* Instantiate Google Vision Client */
@@ -70,6 +70,14 @@ async function loadImages(urls){
 				var imgs = $('img');
 				$(imgs).each(function(i,img){
 					let src = img.attribs.src;
+					let width = (img.attribs.width);
+					let height = (img.attribs.height);
+					if(width != undefined){
+						width = width.replace('px','');
+					}
+					if(height != undefined){
+						height = height.replace('px','');
+					}
 					if(src == undefined){
 						//console.log(img.attribs);
 						let srcBreak = false;
@@ -85,18 +93,19 @@ async function loadImages(urls){
 							}
 						);				
 					}
-
 					//If src is still undefined, do NOT attempt to resolve
 					if(src != undefined){
 						try{
-							let imgAddress = nodeUrl.resolve(url, src);
-							imgsArray.push(imgAddress);
+							//Ignore images that are too small as these probably aren't logos. Include images that have no defined width or height
+							if( (width == undefined || height == undefined) || (width > 30 && height > 30) ){
+								let imgAddress = nodeUrl.resolve(url, src);
+								imgsArray.push(imgAddress);
+							}
 						}
 						catch(error){
 							console.error(error);
 						}
 					}
-
 				})
 				resolve(imgsArray);
 			});  
@@ -157,9 +166,11 @@ Meteor.methods({
 		    }
 		});
 		clientUrls.push(mainUrl);
-		const images = await loadImages(clientUrls);
+		//const images = await loadImages(clientUrls);
+		const images = await loadImages([mainUrl]);
 		let uniqueImages = Array.from(new Set(images));
 		let uniqueImagesBase64 = await getImagesAsBase64(uniqueImages);
+		console.log(uniqueImagesBase64.length)
 		let promises = [];
 
 		uniqueImagesBase64.forEach(image => {

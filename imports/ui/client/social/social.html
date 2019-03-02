@@ -18,22 +18,8 @@
           {{#each socialObj in social}}
             <li class="collection-item" style="padding-left:20px !important">
               <div class="row collection-row">
-                <div class="col s12">
-                  <h4 class="bold">{{socialObj.name}} has ...</h4>
-                </div>
-              </div>
-              <div class="row collection-row more-margin">
-                <div class="col s12">
+                <div class="col s5 offset-s1">
                   <div class="row valign-wrapper">
-                    <div style="margin:0 auto">
-                      <h5><i class="large material-icons info-icon blue-text">textsms</i>Been mentioned about <strong>{{socialObj.mentions}}</strong> times on the web</h5>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row collection-row more-margin">
-                <div class="col s3 offset-s1">
-                  <div class="row">
                     <div class="col s6">
                       <img class="responsive-img social-icon right" src="facebook-icon.png">
                     </div>
@@ -43,7 +29,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="col s4">
+                <div class="col s5">
                   <div class="row valign-wrapper">
                     <div class="col s6">
                       <img class="responsive-img social-icon right" src="pinterest-icon.png">
@@ -51,17 +37,6 @@
                     <div class="col s6 left-align">
                       <h6><strong>Pins</strong></h6>
                       <h6>{{socialObj.shares.pinterest}}</h6>
-                    </div>
-                  </div>
-                </div>
-                <div class="col s3">
-                  <div class="row">
-                    <div class="col s6">
-                      <img class="responsive-img social-icon right" src="stumbledupon-icon.png">
-                    </div>
-                    <div class="col s6 left-align">
-                      <h6><strong>Stumbles</strong></h6>
-                      <h6>{{socialObj.shares.stumbles}}</h6>
                     </div>
                   </div>
                 </div>
@@ -175,65 +150,6 @@
                   </div>
                 </div>
               </div>
-<!--               <div class="divider"></div>
-              <div class="row collection-row">
-                <div class="col s12">
-                  <div class="row">
-                    <div class="col s12">
-                      <h4 class="bold blue-text lighten-3">News Mentions Using Domain</h4>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col s10 push-s1">
-                      {{#if socialObj.newsFromDomain}}
-                        {{#each news in socialObj.newsFromDomain}}
-                          <div class="card-panel">
-                            <div class="row collection-row">
-                              <div class="col s10 push-s1">
-                                <div class="row valign-wrapper">
-                                  <div class="col s2">
-                                    <a href={{news.url}} target="_blank">
-                                      <img src={{news.thumbnail}}>
-                                    </a>
-                                  </div>
-                                  <div class="col s10 left-align">
-                                    <a href={{news.url}} target="_blank">
-                                      <h5>
-                                        {{news.title}}  
-                                      </h5>
-                                    </a>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col s6 left-align">
-                                    <h6>
-                                      <strong>{{news.publisher}}</strong>
-                                    </h6>
-                                  </div>
-                                  <div class="col s6 right-align">
-                                    <h6>
-                                      <strong>{{news.date}}</strong>
-                                    </h6>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col s12 left-align">
-                                    {{news.snippet}}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        {{/each}}
-                      {{else}}
-                        <h5 class="red-text">
-                          No news found
-                        </h5>
-                      {{/if}}
-                    </div>
-                  </div>
-                </div>
-              </div> -->
               <div class="divider"></div>
               <div class="row collection-row">
                 <div class="col s12">

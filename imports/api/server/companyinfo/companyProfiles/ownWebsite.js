@@ -44,7 +44,7 @@ function getOwnPageInfo(body){
         const phoneRegEx3 = text.match(/\+\d{10}/);			//Check for phone number of the format +6591178830
 
         //Address RegEx + Rules
-        const addressRegEx = text.match(/\b\d{6}\b/);			//Check for address(postal code) of the format 268059
+        const addressRegEx = text.match(/\b[Ss]?\d{6}\b/);			//Check for address(postal code) of the format 268059, with an optional S or s in front
         //Year Founded RegEx + Rules						//Check for year founded of the format "Established ... 2019, Founded... 2019"
         const foundedRegEx = text.match(/\b\d{4}\b/);
         const foundedWords = ['founded','established','inception','incepted','created','creation','establishment','set'];
@@ -154,6 +154,7 @@ export default async function getOwnWebsiteInfo(fullUrl,body){
 				request(link,(err,resp,body)=>{
 					if(err){
 						reject(err)
+                        return;
 					}
 					try{
 						let companyDetails = getOwnPageInfo(body);
@@ -168,7 +169,7 @@ export default async function getOwnWebsiteInfo(fullUrl,body){
 		})
 	}
 
-	let companyInfoArray = await Promise.all(promises)
+    let companyInfoArray = await Promise.all(promises.map(p => p.catch(e => e)));
 
 	for(let companyInfo of companyInfoArray) {
 		for(let prop in companyInfo){

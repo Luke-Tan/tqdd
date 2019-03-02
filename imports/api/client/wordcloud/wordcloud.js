@@ -1,21 +1,17 @@
 import '/imports/ui/client/wordcloud/jqcloud.css';
 
-export function getWordCloud(urls, render){
-
+export function getWordCloud(url, body, render){
     /* Destroy any existing Wordcloud and Canvas */
     $('#wordcloud').jQCloud('destroy');
     $("#chart-canvas").remove();
-
     /* Create new canvas */
     var newcanv = document.createElement('canvas');
     newcanv.id = 'chart-canvas';
     $("#chart").append(newcanv);
     const canvas = document.getElementById('chart-canvas');
     const ctx = canvas.getContext('2d');
-    
-    Meteor.call('scrapeText', urls, function(err, result) {
-
-        const { cloudWords , chartWords } = result;
+    Meteor.call('scrapeText', url, body, function(err, result) {
+        let { cloudList , chartList } = result
 
         let myChart;
         let labels = [];
@@ -23,8 +19,7 @@ export function getWordCloud(urls, render){
         let backgroundColors = [];
         let borderColors = [];
         
-
-        chartWords.forEach((item,index) => {
+        chartList.forEach((item,index) => {
             labels.push(item.text);
             data.push(item.weight);
             let color = randomColor({hue: 'blue'});
@@ -64,10 +59,9 @@ export function getWordCloud(urls, render){
         });
 
         //Create wordcloud
-        $('#wordcloud').jQCloud(cloudWords, {
+        $('#wordcloud').jQCloud(cloudList, {
             autoResize:true,
         });
-        
         if(render != undefined){
             render();
         }   

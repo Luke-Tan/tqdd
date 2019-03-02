@@ -13,6 +13,7 @@ export default function getZipleafSgInfo(name){
 				    let $ = cheerio.load(body)
 				    const href = $('.listings').children('h3').children('a').first().attr('href');
 				    const zipleafProfile = nodeUrl.resolve('https://sg.zipleaf.com',href);
+				    console.log(zipleafProfile);
 				    request(zipleafProfile,(err,resp,body)=>{
 				    	try{
 					        let $ = cheerio.load(body);

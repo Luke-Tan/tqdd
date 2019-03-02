@@ -4,6 +4,7 @@ import { getDomain } from '../all/functions.js';
 
 //npm dependancies
 import NaturalLanguageUnderstandingV1 from 'watson-developer-cloud/natural-language-understanding/v1.js';
+import unfluff from 'unfluff';
 
 var nlu = new NaturalLanguageUnderstandingV1({
   'username': Meteor.settings.WATSON_USERNAME,
@@ -16,6 +17,7 @@ function analyze(params) {
 		nlu.analyze(params,(err,response)=>{
 			if(err){
 				reject(err);
+				return;
 			} else {
 				let terms = [];
 				let keywords = response.keywords;
@@ -33,19 +35,11 @@ function analyze(params) {
 					let weight = item.relevance;
 					let freq = Math.ceil((weight**3)*40);
 					cloudList.push({'text':text,'weight':freq})
-				});
-
-				//Include top 10 terms inside the wordchart
-				for(i=0;i<11;i++){
-					if(keywords[i] != undefined){
-						let item = keywords[i];
-						let text = item.text;
-						let weight = item.relevance;
-						let freq = Math.ceil((weight**3)*40);	// Make items with an already large weightage scale heigher, and a flat factor of 40 to increase weightage to all items
+					//Only include first 10 elements in the chart list
+					if(index < 10){
 						chartList.push({'text':text,'weight':freq});
 					}
-				}
-				
+				});
 				resolve({
 					cloudList: cloudList,
 					chartList: chartList
@@ -56,25 +50,51 @@ function analyze(params) {
 }
 
 Meteor.methods({
-	async scrapeText(url){
+	async scrapeText(url,body){
 		let domain = getDomain(url);
-
-		let params = {
-		  'url': domain,
-		  'features': {
-		    'keywords': {
-		    	'sentiment': false,
-		    	'emotion': false,
-		    },
-		    'concepts': {
-		      'limit': 3
-		    }
-		  },
-		  "language": "en",
+		let result; 
+		try{
+			const params = {
+			  'url': domain,
+			  'features': {
+			    'keywords': {
+			    	'sentiment': false,
+			    	'emotion': false,
+			    },
+			    'concepts': {
+			      'limit': 3
+			    }
+			  },
+			  "language": "en",
+			}			
+			result = await analyze(params)
+			return result;
 		}
-
-		const result = await analyze(params);
-
-		return result;
+		catch(error){
+			console.error(error)
+			const data = unfluff(body);
+			const text = data.text;
+			const params = {
+				'text': text,
+				'features': {
+					'keywords': {
+						'sentiment': false,
+						'emotion': false,
+					},
+					'concepts': {
+					  'limit': 3
+					}
+				},
+				"language": "en",
+			}
+			//If this still doesn't work for some reason, return empty cloudList and chartList
+			result = await analyze(params).catch((err)=>{
+				return {
+					cloudList: [],
+					chartList: []
+				}
+			});
+			return result;
+		}
 	}
 });

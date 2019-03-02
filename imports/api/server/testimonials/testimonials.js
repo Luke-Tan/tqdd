@@ -22,7 +22,6 @@ const client = new language.LanguageServiceClient({
 	}
 });
 
-
 /* Agnostic functions */
 function wordCount(str) {
 	if(typeof(str)=='string'){
@@ -30,13 +29,11 @@ function wordCount(str) {
 	  	return str.split(" ").length;
   	}
 }
-
 function textExists(text,arr) {
   return arr.some(function(el) {
     return el.text === text;
   }); 
 }
-
 function countEntities(entities){
 	return entities.filter(function(item, pos, arr){
 	  // Always keep the 0th element as there is nothing before it
@@ -45,6 +42,7 @@ function countEntities(entities){
 	});
 }
 
+/* Testimonial functions */
 function getDistances(arrayOfIndexes) {
 	const arr = arrayOfIndexes;
 	if(arr.length == 1){
@@ -86,95 +84,74 @@ function getDistances(arrayOfIndexes) {
 		minDistance: minDistance,
 	}
 }
-
-function getMaxDistance(arrayOfIndexes) {
-	const arr = arrayOfIndexes;
-	let dist = 0;
-	const reversedArray = arrayOfIndexes.reverse();
-	let prevNumber;
-	let currentNumber;
-	reversedArray.forEach((index)=>{
-		currentNumber = index;
-		let diff = prevNumber-currentNumber
-		if(diff > dist){
-			dist = diff
-		}
-		prevNumber = index;
-	})
-	/* Maximum possible distance is set to 5 
-	(sometimes we may get really large distances when testimonials are not tagged properly)
-	, any more will lead to inaccuracies */
-	if(dist >= 5){
-		dist = 5
+async function authorScore(arr){
+	//First we join the array into a single string
+	const textString = arr.join(' ');
+	/* Get the indexes of each element in the array with respect to the string, 
+	*  so we can map each score from the string to its respective element in the initial array
+	*/
+	let indexes = [];
+	for(item of arr){
+		let endIndex = [...arr.slice(0,arr.indexOf(item)+1)].reduce((a, b) => a + b.length, 0);
+		indexes.push(endIndex);
 	}
-	return dist;
-}
-
-/* Testimonial functions */
-async function authorScore(text){
-	const result = await pd.ner(text)
+	const result = await pd.ner(textString)
 	    .then((response) => {
+	    	let score_array = []
+	    	/* Goal is to make array look like this [0,0,0,...], depending on how many author strings we need to analayse, 
+	    	*  so that we can easily add to these scores later 
+	    	*/
+	    	for(item of arr){
+	    		score_array.push(0);
+	    	}
 	        const entities = (JSON.parse(response)).entities;
 	        let score = 0;
 	        entities.forEach(entity => {
+	        	const name = entity.name;
 	        	const category = entity.category;
 	        	const confidence = entity.confidence_score
-	        	if(category == 'name'){
-	        		score += 3*confidence;
+	        	//Find the index of the scored entity within the overall string
+	        	const index = textString.indexOf(name);
+	        	/* Check through the indexes that we mapped out earlier.
+				 * when theindex falls within the range of one of these indexes,
+				 * we can then add to the appropriate index within the score_array
+				 * Break when its found 
+				 * NOTE: this will FAIL if the scored entity appears multiple times within the text across different indexes
+				 * All of the scores will pile up on the earliest index. This is a minor fail (still can work afterwards).
+				 */
+	        	for(i of indexes){
+	        		if(index<=i){
+			        	if(category == 'name'){
+			        		score_array[indexes.indexOf(i)] += 3*confidence
+			        	}
+			        	if(category == 'organization'){
+			        		score_array[indexes.indexOf(i)] += 1*confidence
+			        	}
+			        	if(category == 'group'){
+			        		score_array[indexes.indexOf(i)] += 1*confidence
+			        	}
+			        	break;
+	        		}
 	        	}
-	        	if(category == 'organization'){
-	        		score += 1*confidence;
-	        	}
-	        	if(category == 'group'){
-	        		score += 1*confidence;
-	        	}
-	        })
-	        return score;
+
+	        });
+	        console.log(score_array)
+	        return score_array;
 	    })
 	    .catch((error) => {
-	        //
-	        return 0;
+	        return [];
     })
 	return result;
 }
-
-async function batchAuthorScore(arr){
-	const text_array = JSON.stringify(arr);
-	const result = await pd.nerBatch(text_array)
-	 	.then((response) => {
-	 		const score_array = []
-	        const everything = (JSON.parse(response)).entities;
-	        everything.forEach(entities=>{
-	        	let score = 0;
-	        	entities.forEach(entity=>{
-		        	const category = entity.category;
-		        	const confidence = entity.confidence_score
-		        	if(category == 'name'){
-		        		score += 3*confidence;
-		        	}
-		        	if(category == 'organization'){
-		        		score += 1*confidence;
-		        	}
-		        	if(category == 'group'){
-		        		score += 1*confidence;
-		        	}
-	        	})
-	        	score_array.push(score)
-	        })
-	        return score_array;
-	    })
-	    .catch((error) =>{
-	        return [];
-	    });
-	return result;
-}
-
 function isTestimonial(text,classifier){
-	if(wordCount(text) > 4 && classifier.classify(text)=='testimonial'){ // A useful testimonial should have at least 10 words
+	if(wordCount(text) > 4 && classifier.classify(text)=='testimonial'){ // A valid testimonial should have at least 5 words
 		const classifications = classifier.getClassifications(text);
 		const testimonialScore = classifications[0].value;
 		const plainScore = classifications[1].value;
 		const factor = testimonialScore/plainScore;
+		/* Filter out junk testimonials by comparing the testimonial confidence score to the plain confidence score
+		 * Valid ones usually have a large factor difference
+		 */
 		if(factor > 50){
 			return true;
 		} else {
@@ -184,37 +161,6 @@ function isTestimonial(text,classifier){
 		return false;
 	}
 }
-
-
-function testimonialFirstPersonFilter(text){
-	const firstPersonMarkers = ['us','our']
-	const thirdPersonMarkers = ['they','them','their','i','she','he','my','thank','his','her']
-
-	let firstPersonScore = 0;
-	let thirdPersonScore = 0;
-
-	/* Split into constituent words */
-	const textArray = text.split(' ');
-	const textLength = textArray.length;
-	textArray.forEach((word)=>{
-		if(firstPersonMarkers.includes(word.toLowerCase())){
-			firstPersonScore++
-		} else if(thirdPersonMarkers.includes(word.toLowerCase)){
-			thirdPersonScore++
-		}
-	})
-
-	if(textLength > 60){
-		if(thirdPersonScore >= firstPersonScore){
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return true;
-	}
-}
-
 async function getTestimonials(links){
 	let promises = [];
 	links.forEach(link=>{
@@ -224,26 +170,32 @@ async function getTestimonials(links){
 			console.error(error);
 		}));
 	});
-	const testimonials = await Promise.all(promises);
+	const testimonials = await Promise.all(promises)
+		.then(result=>{
+			return result;
+		})
+		.catch(error=>{
+			console.error(error);
+			return [];
+		});
 	return testimonials;
 }
-
 function classifyTestimonials(link){
 	return new Promise((resolve,reject)=>{
 		request(link,async (err,resp,body)=>{
 			if(err){
 				reject(err);
+				return;
 			}
 			if(!err && resp.statusCode == 200){
 				natural.LogisticRegressionClassifier.load(Assets.absoluteFilePath('logistic_classifier_5.json'), null, async function(err, classifier) {
 					let $ = cheerio.load(body);
 					let texts = [];
 					let testimonials = [];
-
+					//Replace breaks within the body with a blank space
 					$('br').each(function () {
 						$(this).replaceWith(' ');
 					});
-
 					let testimonialText = '';
 					$('*').not('script,style').each((index,element)=>{	// Scan ALL elements, barring in-line scripts, for potential text
 						let text;
@@ -261,28 +213,28 @@ function classifyTestimonials(link){
 								}
 							})
 						}
-
-
-						if($(element).children().length > 0){		// If the element has children, only get the text of the element itself
+						// If the element has children, only get the text of the element itself
+						if($(element).children().length > 0){		
 							text = $(element).first().contents().filter(function() {
 							    return this.type === 'text';
 							}).text().trim();	
-							//
 						} else {
 							text = $(element).text().trim();		// Get text of the element
 						} 
-
 						/* Immediately reject texts that are empty, purely whitespace, or include unusual characters that usually signify code*/
 						if(text != '' && text.replace(/\s/g, '').length && !text.includes('\\') && !text.includes('{') && !text.includes('}') && !text.includes('<') && !text.includes('>') ){ 
 							if(isTestimonial(text,classifier)){
-								//texts.push({'text':text,type:'testimonial'});
+								//String together testimonial
 								testimonialText += text
 							} else {
+								//When non-testimonial is encountered, consider the testimonial complete and push to array
 								if(testimonialText != ''){
 									texts.push({'text':testimonialText,type:'testimonial'})
 									testimonialText = '';
 								}
-
+								/* If there is a link immediately after the testimonial, we can assume it is a useful link
+								 * that usually contains additional information about the testimonial. Add it to the text array.
+								 */
 								let link = $(element).attr('href');
 								if(link && !link.includes('#')){
 									const href = nodeurl.resolve(link,$(element).attr('href'));
@@ -294,31 +246,38 @@ function classifyTestimonials(link){
 						}
 					});
 
-
-					console.log(texts);
-
-
 					const testimonialIndexes = getAllIndexes(texts,'testimonial');
 					if(testimonialIndexes.length == 0){
 						resolve({testimonials:[]});
 						return;
 					}
 
-					const { maxDistance , minDistance } = getDistances(testimonialIndexes);
-					//
-					console.error(`MIN DISTANCE IS ${minDistance}`);
+					let { maxDistance , minDistance } = getDistances(testimonialIndexes);
+
 					let firstTestimonialIndex = Math.min(...testimonialIndexes);
 					let lastTestimonialIndex = Math.max(...testimonialIndexes);
 
-					let start = firstTestimonialIndex-maxDistance;
+					let min = firstTestimonialIndex-maxDistance;
 
-					if(start < 0){
-						start = 0;
+					if(min < 0){
+						min = 0;
+						maxDistance = firstTestimonialIndex-min;
+						if(minDistance>maxDistance){
+							minDistance = maxDistance;
+						}
 					}
-					let end = lastTestimonialIndex+maxDistance;
-					if(end > texts.length-1){
-						end = texts.length-1
+					let max = lastTestimonialIndex+maxDistance;
+						if(max > texts.length-1){
+							max = texts.length-1
+							maxDistance = max-lastTestimonialIndex;
+							if(minDistance > maxDistance){
+								minDistance = maxDistance;
+						}
 					}
+
+					const start = firstTestimonialIndex-maxDistance;
+					const end = lastTestimonialIndex+maxDistance;
+
 					let thereIsAnAuthorBeforeTestimonial;
 					let thereIsAnAuthorAfterTestimonial;
 					let firstAuthorIndex;
@@ -336,8 +295,20 @@ function classifyTestimonials(link){
 						authorAfterTestimonialTexts.push(text);
 					}
 
-					const authorBeforeTestimonialScores = await batchAuthorScore(authorBeforeTestimonialTexts);
-					const authorAfterTestimonialScores = await batchAuthorScore(authorAfterTestimonialTexts);
+					let authorBeforeTestimonialScores;
+					let authorAfterTestimonialScores;
+
+					console.log(authorBeforeTestimonialTexts);
+					console.log(authorAfterTestimonialTexts);
+					try{
+						authorBeforeTestimonialScores = await authorScore(authorBeforeTestimonialTexts);
+						authorAfterTestimonialScores = await authorScore(authorAfterTestimonialTexts);
+					}
+					catch(error){
+						authorBeforeTestimonialScores = 0;
+						authorAfterTestimonialScores = 0;
+					}
+
 					const authorBeforeTestimonialSum = authorBeforeTestimonialScores.reduce(function(a, b) { return a + b; }, 0);
 					const authorAfterTestimonialSum = authorAfterTestimonialScores.reduce(function(a, b){return a + b; }, 0);
 
@@ -361,7 +332,6 @@ function classifyTestimonials(link){
 					}
 
 					if(thereIsAnAuthorBeforeTestimonial){
-						console.error('AUTHOR BEFORE TESTIMONIAL')
 						let id = 0;
 						for(let index of testimonialIndexes){
 							id++
@@ -381,7 +351,8 @@ function classifyTestimonials(link){
 								if(type == 'href' && href == ''){
 									href = texts[authorIndex].href;
 								} else if (
-									!lowAuthorText.includes('thank') && 	//Authors usually don't have these words... right??
+									//Hard code in words that usually appear near testimonials but are definitely not authors
+									!lowAuthorText.includes('thank') && 
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
 									!lowAuthorText.includes('wish') &&
@@ -389,11 +360,12 @@ function classifyTestimonials(link){
 									!lowAuthorText.includes('testimonial') &&
 									!lowAuthorText.includes('want') &&
 									!lowAuthorText.includes('sign up') &&
-									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
+									wordCount(lowAuthorText) < 20 && //Hard limit of 20 words for an author
 									authorCounter < minDistance &&
 									lowAuthorText.length>2
 								) {
 									authorCounter++;
+									//Use pipe character as a seperator
 									author += `${authorText} | `
 								} else {
 									suspectedTestimonials++
@@ -409,7 +381,6 @@ function classifyTestimonials(link){
 							testimonials.push(testimonial);
 						}
 					} else {
-						console.error('AUTHOR AFTER TESTIMONIAL')
 						let id = 0;
 						for(let index of testimonialIndexes){
 							id++
@@ -429,7 +400,7 @@ function classifyTestimonials(link){
 								if(type == 'href' && href == ''){
 									href = texts[authorIndex].href;
 								} else if(
-									!lowAuthorText.includes('thank') && //Authors usually don't have these words... right??
+									!lowAuthorText.includes('thank') && 
 									!lowAuthorText.includes('regard') && 
 									!lowAuthorText.includes('forward') && 
 									!lowAuthorText.includes('wish') &&
@@ -437,7 +408,7 @@ function classifyTestimonials(link){
 									!lowAuthorText.includes('testimonial') &&
 									!lowAuthorText.includes('want') &&
 									!lowAuthorText.includes('sign up') &&
-									wordCount(lowAuthorText) < 20 && //An author can't have more than 10 words... right??
+									wordCount(lowAuthorText) < 20 && 
 									lowAuthorText.length>2 &&
 									authorCounter < minDistance
 								) {
@@ -456,8 +427,6 @@ function classifyTestimonials(link){
 							testimonials.push(testimonial)
 						}
 					}
-
-					console.log(testimonials);
 					resolve({
 						testimonials:testimonials,
 					})
@@ -490,16 +459,10 @@ Meteor.methods({
 						if(href[href.length -1] == '/'){
 							href = href.slice(0, -1);
 						}
-						// const link = nodeurl.format({
-						//   protocol: 'http',
-						//   hostname: url,
-						//   pathname: href
-						// });
 						const link = nodeurl.resolve(url,href);
-						/* 
-							Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
-							Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
-							Reject links that are already inside the array in case there are multiple links pointing to the same url 
+						/*	Consider all links that contain the word 'testimonial' inside is a valid link with testimonials
+						 *	Reject links that contain a '#'' as it just points to the home page and we dont want to make excess queries
+						 *	Reject links that are already inside the array in case there are multiple links pointing to the same url 
 						*/
 						if( (hrefLowerCase.includes('testimonial') || 
 							hrefLowerCase.includes('review')) && 
@@ -513,7 +476,6 @@ Meteor.methods({
 				if(testimonialLinks.length == 0){
 					testimonialLinks.push(url);
 				}
-
 				resolve(testimonialLinks);
 			});
 		}).then((result)=>{
@@ -522,7 +484,13 @@ Meteor.methods({
 			return [];
 		})
 
-		let testimonialsUnflattened = await getTestimonials(testimonialLinks);
+		let testimonialsUnflattened; 
+		try{
+			testimonialsUnflattened = await getTestimonials(testimonialLinks)
+		}
+		catch(error){
+			testimonialsUnflattened = [];
+		}
 		//const testimonials = testimonialsUnflattened.flatten();
 		let testimonials = []
 		testimonialsUnflattened.forEach(obj=>{
