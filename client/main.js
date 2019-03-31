@@ -147,10 +147,10 @@ Template.main.events({
             Meteor.call('getUrls', fullUrl, (err,result)=>{
                 let urls = result;
 
-                getLogos(fullUrl, urls, () =>{
-                    //Make all preloaders invisible
-                    $('#logos-preloader').addClass('invisible');    
-                });
+                // getLogos(fullUrl, urls, () =>{
+                //     //Make all preloaders invisible
+                //     $('#logos-preloader').addClass('invisible');    
+                // });
 
                 getTestimonials(fullUrl, ()=>{
                     $("#testimonials-preloader").addClass('invisible'); // Make all preloaders invisible
