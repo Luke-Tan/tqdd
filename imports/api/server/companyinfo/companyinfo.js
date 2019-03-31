@@ -112,8 +112,8 @@ Meteor.methods({
 				 * address
 			     */
 				const jobstreetInfo = await getJobstreetInfo(jobStreetUrl,name).catch(error=>{
-					return {};
 					console.error(error)
+					return {};
 			    });
 
 			    /* Yelu Sg Info
@@ -141,10 +141,10 @@ Meteor.methods({
 			     * phone
                  * address
 			    */
-				// const tuugoInfo = await getTuugoInfo(name).catch(error=>{
-				// 	console.error(error)
-				// 	return {};
-			 //    });
+				const tuugoInfo = await getTuugoInfo(name).catch(error=>{
+					console.error(error)
+					return {};
+			    });
 			    
 				/* Info that we find here must adhere to the above schema!! 
 				 * This should be arranged according to level of reliability/accuracy, the best ones should be in front
@@ -155,7 +155,7 @@ Meteor.methods({
 					jobstreetInfo,
 					yeluSgInfo,
 					zipleafInfo,
-					//tuugoInfo,
+					tuugoInfo,
 				]
 				/* We will fill in the mising data for companyDetails here based on the above schema */
 				for(let info of listInfo) {
@@ -165,6 +165,9 @@ Meteor.methods({
 						}
 					}
 				}
+
+				console.log(companyDetails); 
+
 				if(Boolean(companyDetails.logo) == false){
 					/* This logo may or may not be blank, but there is no way to check. 
 					If there is no logo obtained from the above profiles, then fall back to this.*/
@@ -182,6 +185,8 @@ Meteor.methods({
 						return {};
 				    });
 				}
+
+				console.log(companyDetails);
 				resolve(companyDetails);
 			})
 		})

@@ -21,7 +21,10 @@ export default function getZipleafSgInfo(name){
 					        const phone = $('.fa-phone').parent().text().replace(/[^0-9]/g,"");
 					        const address = $('[itemprop=street-address]').text();
 					        /* Replace the first two // to get a workable url */
-					        const logo = $('[itemprop=image]').attr('src').replace(/^.{2}/g,"")
+					        let logo = $('[itemprop=image]').attr('src').replace(/^.{2}/g,"")
+					        if(logo.slice(0,4) != 'https'){
+					        	logo = 'https://'+logo
+					        }
 					        const companyDetails = {
 					        	phone:phone,
 					        	address:address,

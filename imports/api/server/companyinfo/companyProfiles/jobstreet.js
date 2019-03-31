@@ -6,14 +6,16 @@ import { filter } from 'fuzzaldrin';
 export default function getJobstreetInfo(url,name){
     return new Promise((resolve,reject)=>{
     	if(url != undefined){
+    		console.log(url)
 	        request(url,(err,resp,body)=>{
 	        	if(err){
 	        		reject(err)
 	        		return
 	        	}
 	        	try{
+	        		// console.log(body);
 		            let $ = cheerio.load(body)
-		            const links = $('a._1JhFSbFzrI-KbE6gijcuEv');
+		            const links = $('a._1d_9MufDejf5MoIonfRIRk');
 		            $(links).each((i,e)=>{
 		                const href = $(e).attr('href')
 		                const text = $(e).text();
@@ -54,6 +56,7 @@ export default function getJobstreetInfo(url,name){
 			                            address:address
 			                        }
 
+			                        // console.log(companyDetails)
 			                        resolve(companyDetails);
 		                        } else {
 		                        	resolve({});
@@ -72,6 +75,7 @@ export default function getJobstreetInfo(url,name){
 		                //     })
 		                // }
 		            })
+		            resolve({});
 	        	}
 	        	catch(error){
 	        		console.error(error);
