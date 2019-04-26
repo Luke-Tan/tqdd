@@ -23,7 +23,7 @@ function getShares(url){
 				const json = JSON.parse(body);
 				// const facebookShares = json.share.share_count;
 				const facebookShares = json.og_object.engagement.count;
-				resolve(facebookShares);
+				resolve(facebookShares)
 			})
 		})
 	}
