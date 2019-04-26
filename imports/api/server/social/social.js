@@ -13,13 +13,16 @@ import {
 function getShares(url){
 	function getFacebook(url){
 		return new Promise((resolve,reject)=>{
-			const facebookEndPoint = `https://graph.facebook.com/?id=${url}`
+			const fb_app_key = `432210520940209|vCo4VaazsuAIcnQjj-KfA38djUY`
+			// const facebookEndPoint = `https://graph.facebook.com/?id=${url}`
+			const facebookEndPoint = `https://graph.facebook.com/v2.2/?id=https://kpopkart.co&fields=og_object{engagement}&access_token=${fb_app_key}`
 			request(facebookEndPoint,(err,resp,body)=>{
 				if(err){
 					reject(err)
 				}
 				const json = JSON.parse(body);
-				const facebookShares = json.share.share_count;
+				// const facebookShares = json.share.share_count;
+				const facebookShares = json.og_object.engagement.count;
 				resolve(facebookShares);
 			})
 		})
