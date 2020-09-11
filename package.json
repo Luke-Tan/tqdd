@@ -23,7 +23,7 @@
     "merge-images": "^1.1.0",
     "meteor-node-stubs": "^0.3.2",
     "natural": "^0.6.3",
-    "node-fetch": "^2.1.2",
+    "node-fetch": "^2.6.1",
     "paralleldots": "^3.2.3",
     "rss-parser": "^3.5.4",
     "scroll-into-view": "^1.9.3",
