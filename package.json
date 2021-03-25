@@ -13,7 +13,7 @@
     "change-case": "^3.0.2",
     "compromise": "^11.6.0",
     "fibers": "^2.0.0",
-    "fs-path": "0.0.24",
+    "fs-path": "0.0.25",
     "fuzzaldrin": "^2.1.0",
     "google": "^2.1.0",
     "google-gax": "^0.14.5",
